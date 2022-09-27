@@ -89,7 +89,7 @@ int main(void)
                    |
                    |
                    +
-               Pointer to the array
+               Pointer to the array aka "array handle"
 
     On the heap:
         struct Book ** array_of_book_ptrs = calloc(3, sizeof(book_arr));
@@ -98,28 +98,36 @@ int main(void)
         struct Book *array_of_book_ptrs[3] = {};
 
     Now why this "pointer to the array"? Because unlike the array name decaying
-    ito the first array element, pointer to array is actual handle to he array; not decaying to anything.
+    ito the first array element, pointer to array is actual handle to the array; not decaying to anything.
     Example:
     The type we are allocating:      struct Book * [3]
     The type we use as handle :   typedef struct Book * (*arr_handle_type)[3] ;
     Allocate on the heap      :   arr_handle_type bp_handle = (arr_handle_type) malloc(sizeof(struct Book * [3]));
+
+    VLA is about types not storage. If 3 is an variable above that is an VLA type:
+     
+     struct Book ** fun ( size_t len_) {
+       typedef struct Book * book_ptr_array_vla_type[len_]; 
+       return malloc(sizeof(book_ptr_array_vla_type));
+     }
     */
 
     // ok and auto free way
     {
-        // allocate on heap an pointer to the array of pointers to books
+        // allocate on heap the array of pointers to books
+        // and use an handle to it , to er handle it
         typedef struct Book *(*ptr_to_array_of_book_ptrs)[array_len];
 
-        ptr_to_array_of_book_ptrs ptabp = (ptr_to_array_of_book_ptrs)calloc(1, sizeof(ptabp));
+        ptr_to_array_of_book_ptrs ptabp = (ptr_to_array_of_book_ptrs)MALLOC(sizeof(ptabp));
 
         // make on the heap a book to be pointed at from a slot 1
         _autofree_ struct Book *bptr_ =
-            *ptabp[1] = (struct Book *)malloc(sizeof(struct Book));
+            *ptabp[1] = (struct Book *)MALLOC(sizeof(struct Book));
 
         // give book a name
-        book_populate(*ptabp[1], "This boat does not leak");
+        book_populate(bptr_, "This boat does not leak");
 
-        FX("%s", (*ptabp[1])->name);
+        FX("%s", bptr_->name);
 
         // cleanup attribute is not a "destructor in C"
         // it kicks in as soon as end of block is reached
