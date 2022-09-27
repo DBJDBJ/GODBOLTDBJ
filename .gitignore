@@ -1,0 +1,10 @@
+#######################################################
+.vs/
+#### deliberately in .vscode/
+x64/
+*.filters
+*.user
+*.exe
+*.ilk
+*.obj
+*.pdb
