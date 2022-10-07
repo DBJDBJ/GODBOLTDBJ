@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h> // memcpy
+#include <utility>	// std::pair
 
 namespace dbj::mtx
 {
@@ -27,7 +28,12 @@ namespace dbj::mtx
 		T buff_[N]{};
 		return [buff_, size = N](size_t const &idx) mutable -> T &
 		{
-			assert(idx < size);
+#ifdef _DEBUG
+			size_t dumsy_ = size;
+			(void)dums_;
+#endif
+			// idx is 0 .. size
+			assert(idx <= size);
 			return buff_[idx];
 		};
 	}
@@ -94,7 +100,12 @@ namespace dbj::mtx
 
 		return [heap_instance_ = heap_block_type{}, size = N](size_t const &idx) mutable -> T &
 		{
-			assert(idx < size);
+#ifdef _DEBUG
+			size_t dumsy_ = size;
+			(void)dumsy_;
+#endif
+			// idx is 0 .. size
+			assert(idx <= size);
 			return heap_instance_.block[idx];
 		};
 	} // simple_heap()
@@ -132,13 +143,17 @@ namespace dbj::mtx
 			// and this will be a function call operator on that class
 			(size_t row_, size_t col_) mutable -> T &
 			{
-				assert(row_ < rows); // from here we reach the template args
-				assert(col_ < cols); // of the immediate closure
+				// rows and cols are last index
+				// e.g. row_ 0..9 means there are 10 rows
+				// from here we reach the template args
+				// of the immediate closure
+				assert(row_ <= rows);
+				assert(col_ <= cols);
 				return arry(row_ * rows + col_);
 			},
 			// second is for reaching to matrix dimenzions
 			[=]()
-			{ return std::make_piar(rows, cols); }
+			{ return std::make_pair(rows, cols); }
 
 		);
 
@@ -157,7 +172,7 @@ namespace dbj::mtx
 #undef dbj_mtrx_make_heap
 #undef dbj_mtrx_make_stack
 
-// notice here we actually call 
+// notice here we actually call
 #define dbj_mtrx_make(T, R, C, K) dbj::mtx::mtrx<T, R, C>(dbj::mtx::K<T, (R + 1) * (C + 1)>)
 #define dbj_mtrx_make_heap(T, R, C) dbj_mtrx_make(T, R, C, simple_heap)
 #define dbj_mtrx_make_stack(T, R, C) dbj_mtrx_make(T, R, C, simple_stack)

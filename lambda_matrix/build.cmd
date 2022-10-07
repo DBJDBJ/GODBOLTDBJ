@@ -21,11 +21,11 @@ goto debug
 @REM @goto exit
 
 :debug
-%CLANG% /std:c++17 /MTd /Zi main.cpp /o out/lambdamatrix.exe
+%CLANG% /std:c++17 /MTd /Zi lambdamatrix.cpp /o out/lambdamatrix.exe
 @goto exit
 
 :release
-%CLANG% /std:c++17 /MT /O2 main.cpp /o out/lambdamatrix.exe
+%CLANG% /std:c++17 /MT /O2 lambdamatrix.cpp /o out/lambdamatrix.exe
 @goto exit
 
 

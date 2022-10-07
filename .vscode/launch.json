@@ -14,6 +14,18 @@
             "cwd": "${fileDirname}",
             "environment": [],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "LAMBDAMATRIX",
+            "type": "cppvsdbg",
+            "request": "launch",
+            //"program": "${workspaceFolder}/lambdamatrix/out/${fileBasenameNoExtension}.exe",
+            "program" : "D:\\DEVL\\GITHUB\\DBJDBJ\\GODBOLTDBJ\\lambda_matrix\\out\\lambdamatrix.exe",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "console": "integratedTerminal"
         }
     ]
 }
