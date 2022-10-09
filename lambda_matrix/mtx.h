@@ -46,68 +46,14 @@ namespace dbj::mtx
 	{
 		static_assert(mtx::MAX_HEAP_BLOCK > N, "max R * C for heap_block_type block is 0xFFFF");
 
-		// Q: is this machinery really needed?
-		// A: yes it is, proper copy and move struct with pointer member is the only way
-		//    also the destructor in here is the only way this is free'd
-		struct heap_block_type
+		return [size = N](size_t const &idx) mutable -> T &
 		{
-			size_t size{N};
-			// this has to be proper copy/move able struct
-			// seeing bellow compiler does not know the block size
-			T (*block)[N]{0};
-
-			heap_block_type() noexcept : block( (T(*)[N])calloc(1, sizeof(T[N]))) { assert(block); }
-			~heap_block_type() noexcept
+			static T(*block)[N] = []()
 			{
-				if (block)
-				{
-					free(block);
-					block = nullptr;
-				}
-			}
-
-			void copy(heap_block_type &left, heap_block_type const &right) noexcept
-			{
-				assert(left.block);
-				assert(left.size == right.size);
-				::memcpy(left.block, right.block, left.size);
-			}
-			heap_block_type(heap_block_type const &other_) noexcept : block( (T(*)[N])calloc(1, sizeof(T[N])))
-			{
-				assert(block);
-				copy(*this, other_);
-			}
-			heap_block_type &operator=(heap_block_type const &other_) noexcept
-			{
-				copy(*this, other_);
-				return *this;
-			}
-
-			void swap(heap_block_type &left, heap_block_type &right) noexcept
-			{
-				using namespace std;
-				left.size = right.size;
-				left.block = right.block;
-				right.block = nullptr;
-			}
-			heap_block_type(heap_block_type &&other_) noexcept
-			{
-				swap(*this, other_);
-			}
-			heap_block_type &operator=(heap_block_type &&other_) noexcept
-			{
-				swap(*this, other_);
-				return *this;
-			}
-		};
-
-		return [size = N](size_t const & idx) mutable -> T &
-		{
-			static T(*block)[N] = [] () {
-				void * block_ = calloc(1, sizeof(T[N]));
+				void *block_ = calloc(1, sizeof(T[N]));
 				global_deleter_in_the_sky_.next(block_);
-				return (T(*)[N])block_ ;
-			}() ;
+				return (T(*)[N])block_;
+			}();
 
 #ifdef _DEBUG
 			size_t dumsy_ = size;
@@ -167,12 +113,12 @@ namespace dbj::mtx
 				return lambda_block_(row_ * (cols - 1) + col_);
 			},
 			// second is for reaching to matrix dimenzions
-			[=](void) 
+			[=](void)
 			{ return std::make_pair(rows, cols); }
 
 		);
 
-	} // mx()
+	} // mtrx()
 
 	// #undef dbj_mx_make
 	// #undef dbj_mx_make_heap
@@ -195,26 +141,55 @@ namespace dbj::mtx
 	//---------------------------------------------------------------------------
 	// no macro way
 	// yes, I know, this can be one template
-	template <typename T, size_t R, size_t C>
-	struct stack_matrix
-	{
-		static constexpr auto F = simple_stack<T, (R /*+ 1*/) * (C /* + 1 */)>;
-		// mtrx holds two lambdas
-		static auto cell_dims()
-		{
-			/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
-		}
+	// template <typename T, size_t R, size_t C>
+	// struct stack_matrix
+	// {
+	// 	static constexpr auto F = simple_stack<T, (R /*+ 1*/) * (C /* + 1 */)>;
+	// 	// mtrx holds two lambdas
+	// 	static auto cell_dims()
+	// 	{
+	// 		/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
+	// 	}
+	// };
+
+	// template <typename T, size_t R, size_t C>
+	// struct heap_matrix
+	// {
+	// 	static constexpr auto F = simple_heap<T, (R /*+ 1*/) * (C /*+ 1*/)>;
+	// 	// mtrx holds two lambdas
+	// 	static auto cell_dims()
+	// 	{
+	// 		/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
+	// 	}
+	// };
+
+#undef CTCAT
+#undef MATRIX
+
+#define CTCAT(A, B) A##B
+
+// type F must be in the dbj::mtx space
+// and the mtrx template
+
+#define MATRIX(T, R, C, F)                           \
+	struct CTCAT(matrix_, F)                         \
+	{                                                \
+		static constexpr auto FUN = F<T, (R) * (C)>; \
+		static auto cell_dim()                       \
+		{                                            \
+			return mtrx<T, R, C>(FUN);               \
+		}                                            \
 	};
 
-	template <typename T, size_t R, size_t C>
-	struct heap_matrix
-	{
-		static constexpr auto F = simple_heap<T, (R /*+ 1*/) * (C /*+ 1*/)>;
-		// mtrx holds two lambdas
-		static auto cell_dims()
-		{
-			/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
-		}
-	};
+    // usage
+	
+	// struct matrix_simple_stack
+	// MATRIX(int, 3, 3, simple_stack);
+
+	// struct matrix_simple_heap
+	// MATRIX(int, 3, 3, simple_heap);
+
+// #undef CTCAT
+// #undef MATRIX
 
 } // dbj::mtx
