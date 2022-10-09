@@ -1,7 +1,38 @@
 #pragma once
 
+#include <assert.h>
+
 namespace dbj
 {
+
+	template< size_t size = 0xFF >
+    struct global_deleter {
+
+     global_deleter() = default ;
+     global_deleter(global_deleter const &) = delete ;
+     global_deleter(global_deleter &&) = delete ;
+
+		void * blocks[size]{};
+		size_t last_index = 0 ;
+		
+		bool next( void * next_block_) noexcept  {
+			assert(next_block_);
+
+			if (last_index == size) return false ;
+			blocks[++last_index] = next_block_ ;
+			return true ;
+		}
+
+		  ~global_deleter() noexcept {
+                  while ( last_index--) {
+                         free(blocks[last_index]); 
+                         blocks[last_index] = 0 ; 
+				  }
+		  }
+
+	};
+
+    inline global_deleter global_deleter_in_the_sky_ ;
 
 	// this is deliberate as to move the matrix in and out
 	// and keep its value changed

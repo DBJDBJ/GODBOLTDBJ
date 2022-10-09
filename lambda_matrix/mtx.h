@@ -54,9 +54,9 @@ namespace dbj::mtx
 			size_t size{N};
 			// this has to be proper copy/move able struct
 			// seeing bellow compiler does not know the block size
-			T *block{};
+			T (*block)[N]{0};
 
-			heap_block_type() noexcept : block((T *)calloc(N, sizeof(T))) { assert(block); }
+			heap_block_type() noexcept : block( (T(*)[N])calloc(1, sizeof(T[N]))) { assert(block); }
 			~heap_block_type() noexcept
 			{
 				if (block)
@@ -72,8 +72,9 @@ namespace dbj::mtx
 				assert(left.size == right.size);
 				::memcpy(left.block, right.block, left.size);
 			}
-			heap_block_type(heap_block_type const &other_) noexcept : block((T *)calloc(N, sizeof(T)))
+			heap_block_type(heap_block_type const &other_) noexcept : block( (T(*)[N])calloc(1, sizeof(T[N])))
 			{
+				assert(block);
 				copy(*this, other_);
 			}
 			heap_block_type &operator=(heap_block_type const &other_) noexcept
@@ -100,15 +101,21 @@ namespace dbj::mtx
 			}
 		};
 
-		return [heap_instance_ = heap_block_type{}, size = N](size_t idx) mutable -> T &
+		return [size = N](size_t const & idx) mutable -> T &
 		{
+			static T(*block)[N] = [] () {
+				void * block_ = calloc(1, sizeof(T[N]));
+				global_deleter_in_the_sky_.next(block_);
+				return (T(*)[N])block_ ;
+			}() ;
+
 #ifdef _DEBUG
 			size_t dumsy_ = size;
 			(void)dumsy_;
 #endif
 			// idx is 0 .. size
 			assert(idx <= size);
-			return heap_instance_.block[idx];
+			return (*block)[idx];
 		};
 	} // simple_heap()
 
