@@ -1,4 +1,8 @@
-
+#pragma once
+/*
+ this is experiment
+ evaluating the option of do it all-in-one
+*/
 #include <assert.h>
 #include <utility>
 
@@ -17,6 +21,8 @@ inline auto simple_stack_block() noexcept
     static_assert(MAX_STACK_BLOCK > N, "max R * C for a stack block is 0xFF");
 
     T buff_[N]{};                      // guaranteed as a single block
+
+    // https://gustedt.wordpress.com/2014/09/08/dont-use-fake-matrices/
     typedef T(*buff_2d_ptr)[WDT][HGT]; // pointer to 2d matrix
 
     return std::make_pair(

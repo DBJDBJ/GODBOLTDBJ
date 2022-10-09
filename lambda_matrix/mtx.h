@@ -12,7 +12,7 @@ namespace dbj::mtx
 	enum class version
 	{
 		major = 7,
-		minor = 0,
+		minor = 3,
 		patch = 0
 	};
 
@@ -20,17 +20,19 @@ namespace dbj::mtx
 	constexpr size_t MAX_STACK_BLOCK = 0xFF;
 	constexpr size_t MAX_HEAP_BLOCK = 0xFFFF;
 
-	// we do not need std::array
+	// we do not need std::array, and you?
 	template <typename T, size_t N>
 	inline auto simple_stack() noexcept
 	{
-		static_assert(mtx::MAX_STACK_BLOCK > N, "max R * C for a stack block is 0xFF");
+		static_assert(mtx::MAX_STACK_BLOCK > N, "max size for a stack block is 0xFF");
 		T buff_[N]{};
-		return [buff_, size = N](size_t const &idx) mutable -> T &
+
+		// notice we return the mutable reference
+		return [buff_, size = N](size_t idx) mutable -> T &
 		{
 #ifdef _DEBUG
 			size_t dumsy_ = size;
-			(void)dums_;
+			(void)dumsy_;
 #endif
 			// idx is 0 .. size
 			assert(idx <= size);
@@ -98,7 +100,7 @@ namespace dbj::mtx
 			}
 		};
 
-		return [heap_instance_ = heap_block_type{}, size = N](size_t const &idx) mutable -> T &
+		return [heap_instance_ = heap_block_type{}, size = N](size_t idx) mutable -> T &
 		{
 #ifdef _DEBUG
 			size_t dumsy_ = size;
@@ -139,42 +141,73 @@ namespace dbj::mtx
 			// source_ has to be callable
 			// lambda is local class
 			// arry will be a member of that class
-			[arry = source_()]
+			[lambda_block_ = source_()]
 			// and this will be a function call operator on that class
 			(size_t row_, size_t col_) mutable -> T &
 			{
+#ifdef _DEBUG
+				size_t dumsy_ = rows;
+				(void)dumsy_;
+				size_t dumsy2_ = cols;
+				(void)dumsy2_;
+#endif
 				// rows and cols are last index
 				// e.g. row_ 0..9 means there are 10 rows
 				// from here we reach the template args
 				// of the immediate closure
 				assert(row_ <= rows);
 				assert(col_ <= cols);
-				return arry(row_ * rows + col_);
+				return lambda_block_(row_ * (cols - 1) + col_);
 			},
 			// second is for reaching to matrix dimenzions
-			[=]()
+			[=](void) 
 			{ return std::make_pair(rows, cols); }
 
 		);
 
 	} // mx()
 
-#undef dbj_mx_make
-#undef dbj_mx_make_heap
-#undef dbj_mx_make_stack
+	// #undef dbj_mx_make
+	// #undef dbj_mx_make_heap
+	// #undef dbj_mx_make_stack
 
-#define dbj_mx_make(T, R, C, K) dbj::mtx::mx<T, R, C>(dbj::mtx::K<T, (R + 1) * (C + 1)>)
-#define dbj_mx_make_heap(T, R, C) dbj_mx_make(T, R, C, simple_heap)
-#define dbj_mx_make_stack(T, R, C) dbj_mx_make(T, R, C, simple_stack)
+	// #define dbj_mx_make(T, R, C, K) dbj::mtx::mx<T, R, C>(dbj::mtx::K<T, (R + 1) * (C + 1)>)
+	// #define dbj_mx_make_heap(T, R, C) dbj_mx_make(T, R, C, simple_heap)
+	// #define dbj_mx_make_stack(T, R, C) dbj_mx_make(T, R, C, simple_stack)
 
-// use the better version returning two lambdas
-#undef dbj_mtrx_make
-#undef dbj_mtrx_make_heap
-#undef dbj_mtrx_make_stack
+	// // use the better version returning two lambdas
+	// #undef dbj_mtrx_make
+	// #undef dbj_mtrx_make_heap
+	// #undef dbj_mtrx_make_stack
 
-// notice here we actually call
-#define dbj_mtrx_make(T, R, C, K) dbj::mtx::mtrx<T, R, C>(dbj::mtx::K<T, (R + 1) * (C + 1)>)
-#define dbj_mtrx_make_heap(T, R, C) dbj_mtrx_make(T, R, C, simple_heap)
-#define dbj_mtrx_make_stack(T, R, C) dbj_mtrx_make(T, R, C, simple_stack)
+	// // notice here we actually call
+	// #define dbj_mtrx_make(T, R, C, K) dbj::mtx::mtrx<T, R, C>(dbj::mtx::K<T, (R + 1) * (C + 1)>)
+	// #define dbj_mtrx_make_heap(T, R, C) dbj_mtrx_make(T, R, C, simple_heap)
+	// #define dbj_mtrx_make_stack(T, R, C) dbj_mtrx_make(T, R, C, simple_stack)
+
+	//---------------------------------------------------------------------------
+	// no macro way
+	// yes, I know, this can be one template
+	template <typename T, size_t R, size_t C>
+	struct stack_matrix
+	{
+		static constexpr auto F = simple_stack<T, (R /*+ 1*/) * (C /* + 1 */)>;
+		// mtrx holds two lambdas
+		static auto cell_dims()
+		{
+			/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
+		}
+	};
+
+	template <typename T, size_t R, size_t C>
+	struct heap_matrix
+	{
+		static constexpr auto F = simple_heap<T, (R /*+ 1*/) * (C /*+ 1*/)>;
+		// mtrx holds two lambdas
+		static auto cell_dims()
+		{
+			/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
+		}
+	};
 
 } // dbj::mtx

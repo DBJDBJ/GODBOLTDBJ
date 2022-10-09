@@ -1,4 +1,4 @@
-
+#pragma once
 // for benchmarking
 #include <array>
 #include <vector>
@@ -41,4 +41,35 @@ namespace dbj::bmk
 #define dbj_mx_make_heap_std(T, R, C) dbj_mx_make(T, R, C, simple_heap)
 #define dbj_mx_make_stack_std(T, R, C) dbj_mx_make(T, R, C, simple_stack)
 
+	//---------------------------------------------------------------------------
+	// no macro way
+	// yes, I know, this can be one template
+	template <typename T, size_t R, size_t C>
+	struct stack_matrix
+	{
+		static constexpr auto F = simple_stack<T, (R /*+ 1*/) * (C /* + 1 */)>;
+		// mtrx holds two lambdas
+		static auto cell_dims()
+		{
+			/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
+		}
+	};
+
+	template <typename T, size_t R, size_t C>
+	struct heap_matrix
+	{
+		static constexpr auto F = simple_heap<T, (R /*+ 1*/) * (C /*+ 1*/)>;
+		// mtrx holds two lambdas
+		static auto cell_dims()
+		{
+			/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
+		}
+	};
+
+} // dbj::bmk
+
+namespace dbj::bmk
+{
+	using stack_setup = setup<10, 10>;
+	using stack_setup = setup<175, 175>;
 } // dbj::bmk
