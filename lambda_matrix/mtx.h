@@ -120,49 +120,6 @@ namespace dbj::mtx
 
 	} // mtrx()
 
-	// #undef dbj_mx_make
-	// #undef dbj_mx_make_heap
-	// #undef dbj_mx_make_stack
-
-	// #define dbj_mx_make(T, R, C, K) dbj::mtx::mx<T, R, C>(dbj::mtx::K<T, (R + 1) * (C + 1)>)
-	// #define dbj_mx_make_heap(T, R, C) dbj_mx_make(T, R, C, simple_heap)
-	// #define dbj_mx_make_stack(T, R, C) dbj_mx_make(T, R, C, simple_stack)
-
-	// // use the better version returning two lambdas
-	// #undef dbj_mtrx_make
-	// #undef dbj_mtrx_make_heap
-	// #undef dbj_mtrx_make_stack
-
-	// // notice here we actually call
-	// #define dbj_mtrx_make(T, R, C, K) dbj::mtx::mtrx<T, R, C>(dbj::mtx::K<T, (R + 1) * (C + 1)>)
-	// #define dbj_mtrx_make_heap(T, R, C) dbj_mtrx_make(T, R, C, simple_heap)
-	// #define dbj_mtrx_make_stack(T, R, C) dbj_mtrx_make(T, R, C, simple_stack)
-
-	//---------------------------------------------------------------------------
-	// no macro way
-	// yes, I know, this can be one template
-	// template <typename T, size_t R, size_t C>
-	// struct stack_matrix
-	// {
-	// 	static constexpr auto F = simple_stack<T, (R /*+ 1*/) * (C /* + 1 */)>;
-	// 	// mtrx holds two lambdas
-	// 	static auto cell_dims()
-	// 	{
-	// 		/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
-	// 	}
-	// };
-
-	// template <typename T, size_t R, size_t C>
-	// struct heap_matrix
-	// {
-	// 	static constexpr auto F = simple_heap<T, (R /*+ 1*/) * (C /*+ 1*/)>;
-	// 	// mtrx holds two lambdas
-	// 	static auto cell_dims()
-	// 	{
-	// 		/*auto [ cell_, dims_ ] = */ return mtrx<T, R, C>(F);
-	// 	}
-	// };
-
 #undef CTCAT
 #undef MATRIX
 
@@ -179,17 +136,14 @@ namespace dbj::mtx
 		{                                            \
 			return mtrx<T, R, C>(FUN);               \
 		}                                            \
-	};
+	}
 
     // usage
-	
-	// struct matrix_simple_stack
+
+	// generate: struct matrix_simple_stack
 	// MATRIX(int, 3, 3, simple_stack);
 
-	// struct matrix_simple_heap
+	// generate: struct matrix_simple_heap
 	// MATRIX(int, 3, 3, simple_heap);
-
-// #undef CTCAT
-// #undef MATRIX
 
 } // dbj::mtx
