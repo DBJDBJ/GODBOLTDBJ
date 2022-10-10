@@ -14,10 +14,9 @@ namespace dbj::mtx
 		static_assert(N > 0);
 		static_assert(N < dbj::mtx::MAX_STACK_BLOCK, "max stack block is 0xFF");
 
-		std::array<T, N + 1> outer_buff_{};
-
-		return [=](size_t const &idx) mutable -> T &
+		return [ ](size_t const &idx) mutable -> T &
 		{
+			static std::array<T, N + 1> outer_buff_{};
 #ifdef _DEBUG
 			auto size_ = N;
 			(void)size_;
@@ -33,12 +32,11 @@ namespace dbj::mtx
 		static_assert(N > 0);
 		static_assert(N < dbj::mtx::MAX_HEAP_BLOCK, "max heap_block_type block is 0xFFFF");
 
-		std::vector<T> outer_heap_instance_(N + 1);
-
-		assert(N < outer_heap_instance_.size());
-
-		return [=](size_t const &idx) mutable -> T &
+		return [ ](size_t const &idx) mutable -> T &
 		{
+			static std::vector<T> outer_heap_instance_(N + 1);
+			assert(N < outer_heap_instance_.size());
+
 #ifdef _DEBUG
 			auto size_ = N;
 			(void)size_;

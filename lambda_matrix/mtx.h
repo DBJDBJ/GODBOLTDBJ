@@ -25,17 +25,17 @@ namespace dbj::mtx
 	inline auto simple_stack() noexcept
 	{
 		static_assert(mtx::MAX_STACK_BLOCK > N, "max size for a stack block is 0xFF");
-		T buff_[N]{};
 
 		// notice we return the mutable reference
-		return [buff_, size = N](size_t idx) mutable -> T &
+		return [](size_t idx) mutable -> T &
 		{
+			static T buff_[N]{};
 #ifdef _DEBUG
-			size_t dumsy_ = size;
+			size_t dumsy_ = N;
 			(void)dumsy_;
 #endif
 			// idx is 0 .. size
-			assert(idx <= size);
+			assert(idx <= N);
 			return buff_[idx];
 		};
 	}
@@ -46,16 +46,16 @@ namespace dbj::mtx
 	{
 		static_assert(mtx::MAX_HEAP_BLOCK > N, "max R * C for heap_block_type block is 0xFFFF");
 
-			static T * block = []() -> T*
-			{
-				void * pb = 0 ;
-				// why N+1 ?
-				assert(0 != (pb = global_registrar_in_the_sky_.next(N + 1, sizeof(T))));
-				return (T*)pb;
-			}();
-
 		return [&](size_t const &idx) mutable -> T &
 		{
+			static T *block = []() -> T *
+			{
+				void *pb = 0;
+				// why N+1 ?
+				assert(0 != (pb = global_registrar_in_the_sky_.next(N + 1, sizeof(T))));
+				return (T *)pb;
+			}();
+
 #ifdef _DEBUG
 			size_t dumsy_ = N;
 			(void)dumsy_;
@@ -154,8 +154,8 @@ namespace dbj::mtx
 
 	// must avoid
 	// error: static data member 'FUN' not allowed in anonymous struct
-	// __COUNTER__ may have portability issues. If this is a problem, 
-	// you can use __LINE__ instead and as long as you aren't calling the macro 
+	// __COUNTER__ may have portability issues. If this is a problem,
+	// you can use __LINE__ instead and as long as you aren't calling the macro
 	// more than once per line or sharing the names across compilation units, you will be just fine.
 
 #define MTRX(T, R, C, F)                             \
