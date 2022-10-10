@@ -46,22 +46,23 @@ namespace dbj::mtx
 	{
 		static_assert(mtx::MAX_HEAP_BLOCK > N, "max R * C for heap_block_type block is 0xFFFF");
 
-		return [size = N](size_t const &idx) mutable -> T &
-		{
-			static T(*block)[N] = []()
+			static T * block = []() -> T*
 			{
-				void *block_ = calloc(1, sizeof(T[N]));
-				assert(0 != global_deleter_in_the_sky_.add(block_));
-				return (T(*)[N])block_;
+				void * pb = 0 ;
+				// why N+1 ?
+				assert(0 != (pb = global_registrar_in_the_sky_.next(N + 1, sizeof(T))));
+				return (T*)pb;
 			}();
 
+		return [&](size_t const &idx) mutable -> T &
+		{
 #ifdef _DEBUG
-			size_t dumsy_ = size;
+			size_t dumsy_ = N;
 			(void)dumsy_;
 #endif
 			// idx is 0 .. size
-			assert(idx <= size);
-			return (*block)[idx];
+			assert(idx <= N);
+			return block[idx];
 		};
 	} // simple_heap()
 

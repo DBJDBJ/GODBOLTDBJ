@@ -5,49 +5,59 @@
 namespace dbj
 {
 
-	template <size_t size = 0xFF>
-	struct global_deleter
+	class global_registrar
 	{
-
-		global_deleter() = default;
-		global_deleter(global_deleter const &) = delete;
-		global_deleter &operator=(const global_deleter &) = delete;
-		global_deleter(global_deleter &&) = delete;
-		global_deleter &operator=(global_deleter &&) = delete;
+		constexpr static size_t size = 0xFF;
+		global_registrar() = default;
+		global_registrar(global_registrar const &) = delete;
+		global_registrar &operator=(const global_registrar &) = delete;
+		global_registrar(global_registrar &&) = delete;
+		global_registrar &operator=(global_registrar &&) = delete;
 
 		void *blocks[size]{};
 		int last_index = 0;
 
-		// return what was added or null if full
-		void *add(void *next_block_) noexcept
+	public:
+		// return what was made or null if NEM
+		void *next(size_t count_, size_t size_) noexcept
 		{
-			assert(next_block_);
-
 			if (last_index == size)
 				return 0;
-			blocks[last_index] = next_block_;
-			last_index += 1;
+
+			void *next_block_ = calloc(count_, size_);
+
+			if (next_block_)
+			{
+				blocks[last_index] = next_block_;
+				last_index += 1;
+			}
 			return next_block_;
 		}
 
 		void release() noexcept
 		{
-			while (last_index > -1 )
+			// last_index is one beyond the last occupied slot
+			while (--last_index > -1)
 			{
 				free(blocks[last_index]);
 				blocks[last_index] = 0;
-				last_index -= 1;
 			}
 		}
 
-		~global_deleter() noexcept
+		~global_registrar() noexcept
 		{
 			release();
+		}
+
+		static global_registrar &make(void)
+		{
+			static global_registrar deleter_;
+			return deleter_;
 		}
 	};
 
 	//--------------------------------------------------------------------------------
-	inline global_deleter global_deleter_in_the_sky_;
+	inline auto &global_registrar_in_the_sky_ = global_registrar::make();
 	//--------------------------------------------------------------------------------
 
 	// this is deliberate as to move the matrix in and out
