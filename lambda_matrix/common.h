@@ -5,34 +5,50 @@
 namespace dbj
 {
 
-	template< size_t size = 0xFF >
-    struct global_deleter {
+	template <size_t size = 0xFF>
+	struct global_deleter
+	{
 
-     global_deleter() = default ;
-     global_deleter(global_deleter const &) = delete ;
-     global_deleter(global_deleter &&) = delete ;
+		global_deleter() = default;
+		global_deleter(global_deleter const &) = delete;
+		global_deleter &operator=(const global_deleter &) = delete;
+		global_deleter(global_deleter &&) = delete;
+		global_deleter &operator=(global_deleter &&) = delete;
 
-		void * blocks[size]{};
-		size_t last_index = 0 ;
-		
-		bool next( void * next_block_) noexcept  {
+		void *blocks[size]{};
+		int last_index = 0;
+
+		// return what was added or null if full
+		void *add(void *next_block_) noexcept
+		{
 			assert(next_block_);
 
-			if (last_index == size) return false ;
-			blocks[++last_index] = next_block_ ;
-			return true ;
+			if (last_index == size)
+				return 0;
+			blocks[last_index] = next_block_;
+			last_index += 1;
+			return next_block_;
 		}
 
-		  ~global_deleter() noexcept {
-                  while ( last_index--) {
-                         free(blocks[last_index]); 
-                         blocks[last_index] = 0 ; 
-				  }
-		  }
+		void release() noexcept
+		{
+			while (last_index > -1 )
+			{
+				free(blocks[last_index]);
+				blocks[last_index] = 0;
+				last_index -= 1;
+			}
+		}
 
+		~global_deleter() noexcept
+		{
+			release();
+		}
 	};
 
-    inline global_deleter global_deleter_in_the_sky_ ;
+	//--------------------------------------------------------------------------------
+	inline global_deleter global_deleter_in_the_sky_;
+	//--------------------------------------------------------------------------------
 
 	// this is deliberate as to move the matrix in and out
 	// and keep its value changed
@@ -63,58 +79,58 @@ namespace dbj
 
 } // dbj NS
 
-		// Q: is this machinery really needed?
-		// A: not sure
-		// struct heap_block_type
-		// {
-		// 	size_t size{N};
-		// 	// this has to be proper copy/move able struct
-		// 	// seeing bellow compiler does not know the block size
-		// 	T(*block)
-		// 	[N]
-		// 	{ 0 };
+// Q: is this machinery really needed?
+// A: not sure
+// struct heap_block_type
+// {
+// 	size_t size{N};
+// 	// this has to be proper copy/move able struct
+// 	// seeing bellow compiler does not know the block size
+// 	T(*block)
+// 	[N]
+// 	{ 0 };
 
-		// 	heap_block_type() noexcept : block((T(*)[N])calloc(1, sizeof(T[N]))) { assert(block); }
-		// 	~heap_block_type() noexcept
-		// 	{
-		// 		if (block)
-		// 		{
-		// 			free(block);
-		// 			block = nullptr;
-		// 		}
-		// 	}
+// 	heap_block_type() noexcept : block((T(*)[N])calloc(1, sizeof(T[N]))) { assert(block); }
+// 	~heap_block_type() noexcept
+// 	{
+// 		if (block)
+// 		{
+// 			free(block);
+// 			block = nullptr;
+// 		}
+// 	}
 
-		// 	void copy(heap_block_type &left, heap_block_type const &right) noexcept
-		// 	{
-		// 		assert(left.block);
-		// 		assert(left.size == right.size);
-		// 		::memcpy(left.block, right.block, left.size);
-		// 	}
-		// 	heap_block_type(heap_block_type const &other_) noexcept : block((T(*)[N])calloc(1, sizeof(T[N])))
-		// 	{
-		// 		assert(block);
-		// 		copy(*this, other_);
-		// 	}
-		// 	heap_block_type &operator=(heap_block_type const &other_) noexcept
-		// 	{
-		// 		copy(*this, other_);
-		// 		return *this;
-		// 	}
+// 	void copy(heap_block_type &left, heap_block_type const &right) noexcept
+// 	{
+// 		assert(left.block);
+// 		assert(left.size == right.size);
+// 		::memcpy(left.block, right.block, left.size);
+// 	}
+// 	heap_block_type(heap_block_type const &other_) noexcept : block((T(*)[N])calloc(1, sizeof(T[N])))
+// 	{
+// 		assert(block);
+// 		copy(*this, other_);
+// 	}
+// 	heap_block_type &operator=(heap_block_type const &other_) noexcept
+// 	{
+// 		copy(*this, other_);
+// 		return *this;
+// 	}
 
-		// 	void swap(heap_block_type &left, heap_block_type &right) noexcept
-		// 	{
-		// 		using namespace std;
-		// 		left.size = right.size;
-		// 		left.block = right.block;
-		// 		right.block = nullptr;
-		// 	}
-		// 	heap_block_type(heap_block_type &&other_) noexcept
-		// 	{
-		// 		swap(*this, other_);
-		// 	}
-		// 	heap_block_type &operator=(heap_block_type &&other_) noexcept
-		// 	{
-		// 		swap(*this, other_);
-		// 		return *this;
-		// 	}
-		// };
+// 	void swap(heap_block_type &left, heap_block_type &right) noexcept
+// 	{
+// 		using namespace std;
+// 		left.size = right.size;
+// 		left.block = right.block;
+// 		right.block = nullptr;
+// 	}
+// 	heap_block_type(heap_block_type &&other_) noexcept
+// 	{
+// 		swap(*this, other_);
+// 	}
+// 	heap_block_type &operator=(heap_block_type &&other_) noexcept
+// 	{
+// 		swap(*this, other_);
+// 		return *this;
+// 	}
+// };

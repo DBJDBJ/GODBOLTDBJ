@@ -51,7 +51,7 @@ namespace dbj::mtx
 			static T(*block)[N] = []()
 			{
 				void *block_ = calloc(1, sizeof(T[N]));
-				global_deleter_in_the_sky_.next(block_);
+				assert(0 != global_deleter_in_the_sky_.add(block_));
 				return (T(*)[N])block_;
 			}();
 
@@ -120,13 +120,18 @@ namespace dbj::mtx
 
 	} // mtrx()
 
+#undef XPND
 #undef CTCAT
 #undef MATRIX
 
-#define CTCAT(A, B) A##B
+#define XPND(A) A
+// One level of macro indirection is required in order to resolve __COUNTER__,
+// and get varname1 instead of varname__COUNTER__.
+#define CTCAT(a, b) CONCAT_INNER(a, b)
+#define CONCAT_INNER(a, b) a##b
 
-// type F must be in the dbj::mtx space
-// and the mtrx template
+	// type F must be in the dbj::mtx space
+	// and the mtrx template
 
 #define MATRIX(T, R, C, F)                           \
 	struct CTCAT(matrix_, F)                         \
@@ -138,12 +143,33 @@ namespace dbj::mtx
 		}                                            \
 	}
 
-    // usage
+	// usage
 
 	// generate: struct matrix_simple_stack
 	// MATRIX(int, 3, 3, simple_stack);
 
 	// generate: struct matrix_simple_heap
 	// MATRIX(int, 3, 3, simple_heap);
+
+	// must avoid
+	// error: static data member 'FUN' not allowed in anonymous struct
+	// __COUNTER__ may have portability issues. If this is a problem, 
+	// you can use __LINE__ instead and as long as you aren't calling the macro 
+	// more than once per line or sharing the names across compilation units, you will be just fine.
+
+#define MTRX(T, R, C, F)                             \
+	struct CTCAT(MTX_, __COUNTER__)                  \
+	{                                                \
+		static constexpr auto FUN = F<T, (R) * (C)>; \
+		static auto cell_dim()                       \
+		{                                            \
+			return dbj::mtx::mtrx<T, R, C>(FUN);     \
+		}                                            \
+	}
+
+	// usage
+
+	// using mtrx_ss = MTRX(int, 3, 3, simple_stack);
+	// using mtrx_sh = MTRX(int, 3, 3, dbj::mtx::simple_heap);
 
 } // dbj::mtx
