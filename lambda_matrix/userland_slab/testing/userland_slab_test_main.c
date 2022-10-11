@@ -1,6 +1,6 @@
 #ifdef _WIN32
 #define UL_FORMAT_SPEC "%zu"
-#include "generate_dump.h"
+#include "generate_dump.h" // for SEH 
 #else // ! _WIN32
 #define UL_FORMAT_SPEC "%lu"
 #endif // ! _WIN32
@@ -17,11 +17,11 @@
 #define USERLAND_SLAB_IMPLEMENTED_HERE
 #include "../src/slab_implementation.h"
 
-#define N 1000000
+// #define N 1000000
+#define N 10
 
 static int run(const int argc, char **argv)
 {
-
   /*You can compare the memory consumed by this program.
     <program> <alloc_type> <size>
     <alloc_type> = 1 - malloc based allocation
@@ -51,12 +51,6 @@ static int run(const int argc, char **argv)
   if (argv[1][0] == '1')
   {
     printf("Allocation of %d objects of size " UL_FORMAT_SPEC "  with malloc()\n", N, obj_size);
-
-    // dbj removed
-    // if (array == NULL){
-    //   printf("Allocation failed\n");
-    //   return -1;
-    // }
 
     for (int i = 0; i < N; i++)
     {
@@ -98,9 +92,7 @@ static int run(const int argc, char **argv)
       }
     }
 
-    getchar();
-
-    // We do something with the allocated objects
+    // Perhaps do something with the allocated objects here
     //  ...
 
     objs_cache_destroy(&cache);
@@ -108,7 +100,7 @@ static int run(const int argc, char **argv)
     slab_allocator_destroy();
   }
 
-  return 42;
+  return EXIT_SUCCESS ;
 }
 
 // dbj added win32 SEH to be able to catch stack overflow
@@ -132,7 +124,7 @@ int main(const int argc, char **argv)
 {
   __try
   {
-    run(argc, argv);
+    return run(argc, argv);
   }
   // __except (filterException(GetExceptionCode(), GetExceptionInformation()))
   // {
@@ -157,8 +149,8 @@ int main(const int argc, char **argv)
     {
       printf("\nMinidump creation failed");
     }
-    return 0;
   }
+    return EXIT_SUCCESS ;
 }
 #else  // linux, probably
 int main(const int argc, char **argv)
