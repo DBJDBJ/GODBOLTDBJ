@@ -121,6 +121,7 @@ static inline int filterException(int code, PEXCEPTION_POINTERS ex)
   https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55
   You can look up exception code in ntstatus.h
   0xC00000FD is STATUS_STACK_OVERFLOW
+  although if you have a minidump you open it in VStudio and all the info is nicely laid out there
   */
   printf("\n\nSEH code: %x", code);
   return EXCEPTION_EXECUTE_HANDLER;
