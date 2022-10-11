@@ -123,7 +123,7 @@ static inline int filterException(int code, PEXCEPTION_POINTERS ex)
   0xC00000FD is STATUS_STACK_OVERFLOW
   although if you have a minidump you open it in VStudio and all the info is nicely laid out there
   */
-  printf("\n\nSEH code: %x", code);
+  printf("\n\nSEH code: %x, caught", code);
   return EXCEPTION_EXECUTE_HANDLER;
 }
 
