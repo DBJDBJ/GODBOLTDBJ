@@ -1,3 +1,4 @@
+#pragma once
 /* mmap() replacement for Windows
  *
  * Author: Mike Frysinger <vapier@gentoo.org>

@@ -1,3 +1,4 @@
+#pragma once
 /*
  DBJ
      __linux__       Defined on Linux
@@ -13,6 +14,11 @@
     _WIN32          Defined on Windows
 */
 
+#ifdef USERLAND_SLAB_IMPLEMENTED_HERE
+// this include the whole of windows.h too
+#include "mmap_windows.h"
+#endif // USERLAND_SLAB_IMPLEMENTED_HERE
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +29,21 @@
 #include <sys/mman.h>
 #endif
 
+// sysconf(_SC_PAGESIZE)  multi OS by dbj@dbj.org
+#ifdef _WIN32
+// assumption is windows.h is included before this somewhere
+inline static size_t dbj_page_size (void) {
+    SYSTEM_INFO sysInfo = {};
+    GetSystemInfo(&sysInfo);
+    // printf("%s %d\n\n", "PageSize[Bytes] :", sysInfo.dwPageSize);
+    return sysInfo.dwPageSize ;
+}
+#else // ! _WIN32
+// linux
+inline static size_t dbj_page_size (void) {
+  return sysconf(_SC_PAGESIZE);
+}
+#endif // _WIN32
 
 #include "slab.h"
 #include "queue.h"
@@ -46,6 +67,7 @@ static void * alloc_obj_from_slab(struct Userland_slab *slab);
 static void free_obj_from_slab(struct Userland_slab *slab, struct Obj *obj);
 static struct Userland_slab * get_owning_slab(void *obj, size_t pg_sz);
 
+#ifdef USERLAND_SLAB_IMPLEMENTED_HERE
 /*******************************************************
                         Private data
 *******************************************************/
@@ -236,15 +258,19 @@ static void default_slab_freeing_policy(struct Objs_cache *cache)
   if (cache != NULL) {
     struct Userland_slab *slab = cache->free_slabs;
     for (;cache->free_slabs_count > DEFAULT_MAX_FREE_SLABS_ALLOWED; cache->free_slabs_count--) {
-      slab = dlist_pop_head_generic(cache->free_slabs, prev, next);
+      slab = (struct Userland_slab *)dlist_pop_head_generic(cache->free_slabs, prev, next);
       destroy_slab(slab, cache->slab_size);
     }
   }
 }
 
+#endif // USERLAND_SLAB_IMPLEMENTED_HERE
+
+
 /********************************************************
  *                       Public methods
  *******************************************************/
+#ifdef USERLAND_SLAB_IMPLEMENTED_HERE
 
 
 int slab_allocator_init(void)
@@ -307,7 +333,7 @@ struct Objs_cache * _objs_cache_init(struct Objs_cache *cache,
     cache->cache_slab_descr = &cache_Userland_slab;
       
   cache->pages_per_slab = pages_per_slab;
-  cache->page_size = sysconf(_SC_PAGESIZE);
+  cache->page_size = dbj_page_size(); //DBJ 2022Q4 replaced sysconf(_SC_PAGESIZE);
   cache->slab_size = cache->pages_per_slab*cache->page_size;
 
   size_t pg_metadata_sz = sizeof(void*);
@@ -510,6 +536,8 @@ void objs_cache_free(struct Objs_cache *cache, void *obj)
   }
 }
 
+#ifdef USERLAND_SLAB_DEBUGGED_HERE
+
 /**********************************************
  *             Debug methods
  *********************************************/
@@ -556,4 +584,9 @@ void display_slab_info(const struct Userland_slab *slab)
     printf("\n");
   }
 }
+
+#endif // USERLAND_SLAB_DEBUGGED_HERE
+
+#endif // USERLAND_SLAB_IMPLEMENTED_HERE
+
 

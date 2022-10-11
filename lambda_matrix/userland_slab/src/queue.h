@@ -1,11 +1,12 @@
+#pragma once
 /**
  * Contains useful macros (GNU C only) to manipulate doubly-linked lists.
  *
  * These macros are type-independant. The names of 'prev' and 'next'
  * fields are given as parameters.
  */
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef GNU_QUEUE_H
+#define GNU_QUEUE_H
 
 #define dlist_is_empty_generic(list)		\
   ((list) == NULL)
@@ -38,7 +39,7 @@
     })
 
 #define dlist_pop_head_generic(list, prev, next) ({	\
-      typeof(list) __el2pop = (list);			\
+      __typeof__(list) __el2pop = (list);			\
       dlist_delete_head_generic(list, __el2pop, prev, next);	\
       __el2pop;						\
     })
@@ -60,4 +61,4 @@
     })
 
 
-#endif 
+#endif  // GNU_QUEUE_H

@@ -2,7 +2,7 @@
 @cls
 @setlocal
 
-@REM build a lib
+@REM @set "INCLUDE=D:\machine_wide;%INCLUDE%"
 
 @if [%1] == [c] goto clean
 @if [%1] == [clean] goto clean
@@ -20,21 +20,22 @@
 :debug
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 @REM set CLANG="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang-cl.exe"
-set CLANG="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang"
-%CLANG% -std=c17 -c -Wall src/slab.c src/mmap_windows.c -o userlandslab.o
+@REM %CLANG% /std:c17 /TC /MTd /Zi /D_HAS_EXCEPTIONS=0 userland_slab_test_main.c /GR- /o out/userland_slab_test_main.exe
+set CLANG="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang.exe"
+%CLANG% -std=c17 -g -D_HAS_EXCEPTIONS=0 userland_slab_test_main.c --output out/userland_slab_test_main.exe
 @goto exit
 
 :release
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-set CLANG="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang"
-%CLANG% -std:c17 -Wall src/slab.c src/mmap_windows.c -c -o out/userlandslab.o
+set CLANG="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang-cl.exe"
+%CLANG% /std:c17 /Tc /MT userland_slab_test_main.c /D_HAS_EXCEPTIONS=0 /GR- /o out/userland_slab_test_main.exe
 @goto exit
 
 
 :clean
-@del out\*.pdb
-@del out\*.ilk
-@del out\*.exe
+@del out\*.pdb >NUL
+@del out\*.ilk >NUL
+@del out\*.exe >NUL
 @goto exit
 
 :exit

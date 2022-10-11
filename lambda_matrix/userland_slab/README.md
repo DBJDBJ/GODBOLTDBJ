@@ -1,3 +1,22 @@
+# 2022 Q4 -- DBJ refactored into header only
+
+Make one empty C file in your project and do
+
+```c
+#define USERLAND_SLAB_IMPLEMENTED_HERE
+#include "userland_slab/src/slab_implementation.h"
+```
+That include above is without it being on the include path.
+When using elsewhere, include as
+```c
+#define USERLAND_SLAB_IMPLEMENTED_HERE
+#include "userland_slab/src/slab.h"
+```
+
+See `userland_slab\testing` folder for an quick and easy, but very valid, example.
+
+Yes, always use `build.cmd` when you see one. It always requires the `out` folder under it, to be made if not present already.
+
 # Userland slab
 Example of a small implementation in C of a slab allocator in user space.
 

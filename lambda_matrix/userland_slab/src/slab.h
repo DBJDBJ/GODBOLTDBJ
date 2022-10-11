@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef USERLAND_SLAB_H
 #define USERLAND_SLAB_H
 
