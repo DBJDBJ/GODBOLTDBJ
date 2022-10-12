@@ -52,7 +52,7 @@ namespace dbj::mtx
 			{
 				void *pb = 0;
 				// why N+1 ?
-				assert(0 != (pb = global_registrar_in_the_sky_.next(N + 1, sizeof(T))));
+				assert(0 != (pb = dbj_memory.next(N + 1, sizeof(T))));
 				return (T *)pb;
 			}();
 

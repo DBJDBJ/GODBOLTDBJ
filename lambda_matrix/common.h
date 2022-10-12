@@ -4,62 +4,6 @@
 
 namespace dbj
 {
-
-	class global_registrar
-	{
-		constexpr static size_t size = 0xFF;
-		global_registrar() = default;
-		global_registrar(global_registrar const &) = delete;
-		global_registrar &operator=(const global_registrar &) = delete;
-		global_registrar(global_registrar &&) = delete;
-		global_registrar &operator=(global_registrar &&) = delete;
-
-		void *blocks[size]{};
-		int last_index = 0;
-
-	public:
-		// return what was made or null if NEM
-		void *next(size_t count_, size_t size_) noexcept
-		{
-			if (last_index == size)
-				return 0;
-
-			void *next_block_ = calloc(count_, size_);
-
-			if (next_block_)
-			{
-				blocks[last_index] = next_block_;
-				last_index += 1;
-			}
-			return next_block_;
-		}
-
-		void release() noexcept
-		{
-			// last_index is one beyond the last occupied slot
-			while (--last_index > -1)
-			{
-				free(blocks[last_index]);
-				blocks[last_index] = 0;
-			}
-		}
-
-		~global_registrar() noexcept
-		{
-			release();
-		}
-
-		static global_registrar &make(void)
-		{
-			static global_registrar deleter_;
-			return deleter_;
-		}
-	};
-
-	//--------------------------------------------------------------------------------
-	inline auto &global_registrar_in_the_sky_ = global_registrar::make();
-	//--------------------------------------------------------------------------------
-
 	// this is deliberate as to move the matrix in and out
 	// and keep its value changed
 	inline auto changer = [](auto cell_, size_t row_, size_t col_, auto value_)
