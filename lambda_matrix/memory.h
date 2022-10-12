@@ -79,14 +79,15 @@ namespace dbj
            holding allocated blocks until destruction time
            then releasing them
         */
-        class memory_manager
+
+        class memory_blocks
         {
             constexpr static size_t blocks_arr_size = 0xFF;
-            memory_manager() = default;
-            memory_manager(memory_manager const &) = delete;
-            memory_manager &operator=(const memory_manager &) = delete;
-            memory_manager(memory_manager &&) = delete;
-            memory_manager &operator=(memory_manager &&) = delete;
+            memory_blocks() = default;
+            memory_blocks(memory_blocks const &) = delete;
+            memory_blocks &operator=(const memory_blocks &) = delete;
+            memory_blocks(memory_blocks &&) = delete;
+            memory_blocks &operator=(memory_blocks &&) = delete;
 
             void *blocks[blocks_arr_size]{};
             int blocks_last_index = 0;
@@ -97,7 +98,7 @@ namespace dbj
             template<unsigned int size_> 
             void *next(size_t count_) noexcept
             {
-                if (blocks_last_index == size)
+                if (blocks_last_index == size_)
                     return 0;
 
                 // void *next_block_ = calloc(count_, size_);
@@ -123,9 +124,9 @@ namespace dbj
                 }
             }
 
-            ~memory_manager() noexcept
+            ~memory_blocks() noexcept
             {
-                release();
+                //release();
             }
 
             friend struct memory_manager_proxy;
@@ -135,9 +136,9 @@ namespace dbj
 
     struct memory_manager_proxy
     {
-        static memory_manager &make(void)
+        static memory_blocks &make(void)
         {
-            static memory_manager mmgr_;
+            static memory_blocks mmgr_;
             return mmgr_;
         }
     };
