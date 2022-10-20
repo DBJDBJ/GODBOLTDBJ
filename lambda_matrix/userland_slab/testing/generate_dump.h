@@ -3,12 +3,12 @@
 #define DBJ_APP_NAME  "USERLAND_SLAB_TEST"
 #define DBJ_APP_VERSION "0.0.1"
 /*
+Repo: https://github.com/dbj-data/dbj-fwk
+(c) 2020 by dbj.org, CC BY SA 4.0
 
 Taken from: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/crash-dump-analysis
 
-Extension (c) 2020 by dbj.org -- LICENSE_DBJ
-
-NOTE: SEH routines are intrinsic to the cl.exe
+NOTE: SEH routines are intrinsic to the cl.exe, win32 and windows in general
 Usage: 
 
 inline void SomeFunction()
@@ -16,18 +16,13 @@ inline void SomeFunction()
     __try
     {
         int *pBadPtr = NULL;
-        *pBadPtr = 0;
+        *pBadPtr = 42;
     }
     __except(GenerateDump(GetExceptionInformation()))
     {
     }
 }
 */
-
-// #include "win/windows_includer.h"
-// #include "meta.h"
-
-// assumption is windows.h is included before this
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -58,7 +53,17 @@ typedef struct generate_dump_last_run {
 
 static generate_dump_last_run dump_last_run ;
 /*
-DBJ: warning, currently this is a blocking call to an expensive function
+DBJ: warning, currently this is a blocking call to an potentially expensive function
+     also we must return int and it is EXCEPTION_EXECUTE_HANDLER
+     we use the instance of the above struct to monitor the execution sucess
+
+       __except (
+      GenerateDump(GetExceptionInformation())
+      // returns 1 aka EXCEPTION_EXECUTE_HANDLER 
+     ) {
+            if (dump_last_run.finished_ok) {}
+     }
+
 */
 inline static int GenerateDump(EXCEPTION_POINTERS* pExceptionPointers)
 {

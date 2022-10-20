@@ -59,7 +59,7 @@ static int run(const int argc, char **argv)
       assert(array[i] != 0);
     }
 
-    getchar();
+
   }
   else
   {

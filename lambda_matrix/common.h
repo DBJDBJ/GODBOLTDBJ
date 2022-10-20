@@ -4,6 +4,68 @@
 
 namespace dbj
 {
+	namespace
+	{
+		/*
+		 holding allocated blocks until destruction time
+		then releasing them
+		*/
+		class memory_keeper
+		{
+			constexpr static size_t blocks_arr_size = 0xFF;
+			memory_keeper() = default;
+			memory_keeper(memory_keeper const &) = delete;
+			memory_keeper &operator=(const memory_keeper &) = delete;
+			memory_keeper(memory_keeper &&) = delete;
+			memory_keeper &operator=(memory_keeper &&) = delete;
+
+			void *blocks[blocks_arr_size]{};
+			int blocks_last_index = 0;
+
+		public:
+			// create or reuse slab of a given size
+			// return what was made or null if NEM occured
+			void *next(size_t count_, const size_t size_) noexcept
+			{
+				if (blocks_last_index == size_)
+					return 0;
+
+				void *next_block_ = calloc(count_, size_);
+
+				if (next_block_)
+				{
+					this->blocks[blocks_last_index] = next_block_;
+					blocks_last_index += 1;
+				}
+				return next_block_;
+			}
+
+			void release() noexcept
+			{
+				// last_index is one beyond the last occupied slot
+				while (--blocks_last_index > -1)
+				{
+					free(blocks[blocks_last_index]);
+					blocks[blocks_last_index] = 0;
+				}
+			}
+
+			~memory_keeper() noexcept
+			{
+				release();
+			}
+
+			static memory_keeper &make()
+			{
+				static memory_keeper proxy_ = memory_keeper();
+				return proxy_;
+			}
+		};
+	} // NS
+	//----------------------------------------------------------------------
+	static memory_keeper &mem = memory_keeper::make();
+	//----------------------------------------------------------------------
+
 	// this is deliberate as to move the matrix in and out
 	// and keep its value changed
 	inline auto changer = [](auto cell_, size_t row_, size_t col_, auto value_)
