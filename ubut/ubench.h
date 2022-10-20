@@ -505,13 +505,13 @@ UBUT_C_FUNC UBUT_NOINLINE void ubench_do_nothing(void *const);
    We also use this to define the 'do nothing' method that lets us keep data
    that the compiler would normally deem is dead for the purposes of timing.
 */
-#ifdef UBENCH_IMPLEMENTATION
+// #ifdef UBENCH_IMPLEMENTATION
 
-#define UBENCH_STATE             \
+#define UBENCH_STATE()             \
 	UBENCH_DECLARE_DO_NOTHING(); \
 	struct ubench_state_s ubench_state = {0, 0, 0, 2.5}
 
-#endif // UBENCH_IMPLEMENTATION
+// #endif // UBENCH_IPMLEMENTATION
 
 /*
 copy paste a main() function bellow to call into ubench.h and start executing

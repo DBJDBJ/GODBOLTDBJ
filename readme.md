@@ -19,6 +19,14 @@ The one that comes with Visual Studio Community Edition. Always x64, too.
 
 It matches my PC setup. Which is bog standard and `c:\\` based. If yours is not, then again please dive into `./vscode`.
 
+### To build: 
+
+1. make active the file you want to compile into exe (i.e. have it opened in the editor)
+2. CTRL + SHIFT + B
+3. output is in the godboltdbj/bin folder
+
+compiler in use is clang as packaged with VStudio. 
+
 ## The Roadmap
 [cosmopolitan libc](https://justine.lol/cosmopolitan/windows-compiling.html) : your build-once run-anywhere c library . And yes, OS is not needed too.
 
