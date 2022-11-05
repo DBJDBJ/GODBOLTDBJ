@@ -82,7 +82,7 @@ UBENCH(heap, std_stuff)
 
 //----------------------------------------------------------------------
 
-UBENCH_STATE; // note there is no ()!
+UBENCH_STATE(); // note there is no ()!
 int main(int argc, const char *const argv[])
 {
 	system(" ");

@@ -4,8 +4,13 @@
 #include "../ubut/ubench.h"
 #endif
 
+#include "../common.h"
+
 // HT count for both C and C++
-#define MV_LEFT 22
+// this yield very high number --> 
+// #define MV_LEFT 22
+#define MV_LEFT 6
+// #define MV_LEFT 2
 #define HT_COUNT (1 << MV_LEFT)
 
 //----------------------------------------------------------------------------
@@ -78,7 +83,7 @@ next(uint64_t hash, int exp, int i)
     unsigned step = hash>>(64 - exp) | 1;
     return (i + step) & mask;
 }
-
+//----------------------------------------------------------------------------------
 #ifdef USE_UBENCH
 UBENCH( hash_jamboree, c_version )
 #else
@@ -86,25 +91,27 @@ static void hash_jamboree_c_version(void)
 #endif
 {
 
-    int len = 0;
+    // int len = 0;
     static struct val ht[HT_COUNT + 1] = {};
 
     memset( ht, 0, sizeof(struct val[HT_COUNT + 1]));
 
-    for (int i = 0; i < HT_COUNT ; i++) {
+    int i = RANDINRANGE(0, HT_COUNT);
+
+    // for (int i = 0; i < HT_COUNT ; i++) {
         struct val v = make(i);
         uint64_t h = hash(v);
         for (int i = h;;) {
             i = next(h, HT_COUNT + 1, i);
             if (!ht[i].s[0]) {
                 ht[i] = v;
-                len++;
+                // len++;
                 break;
             }
             assert(!equal(ht[i], v));
         }
-    }
-    assert(len == HT_COUNT);
+    // }
+    // assert(len == HT_COUNT);
 }
 
 #ifdef __cplusplus
@@ -125,14 +132,22 @@ UBENCH( hash_jamboree, cplusplus_version )
 static void hash_jamboree_cplusplusversion()
 #endif
 {
-    int len = 0;
-    std::set<std::string> ht;
-    for (int i = 0; i < HT_COUNT ; i++) {
+    // int len = 0;
+    static std::set<std::string> ht;
+
+    ht.clear();
+
+     int i = RANDINRANGE(0, HT_COUNT);
+
+    // for (int i = 0; i < HT_COUNT ; i++) {
         auto v = std::to_string(i);
         auto r = ht.insert(v);
-        len += r.second;
-    }
-    assert(len == HT_COUNT);
+
+        (void)v;
+        (void)r;
+        // len += r.second;
+    // }
+    // assert(len == HT_COUNT);
 }
 
 //----------------------------------------------------------------------------
@@ -145,6 +160,9 @@ extern "C" {
 
   UBENCH_STATE();
   int main(int argc, const char *const argv[]) { 
+    UBUT_CONSOLE_COLOR_RESET();
+    UBUT_WARN("\nHT_COUNT = %d \n", HT_COUNT );
+    srand(time(NULL));
 	return ubench_main(argc, argv);      
   }
 
@@ -156,6 +174,7 @@ extern "C" {
 
 int main(void)
 {
+    srand(time(NULL));
     hash_jamboree_c_version();
     hash_jamboree_cplusplusversion();
     return 42; // 

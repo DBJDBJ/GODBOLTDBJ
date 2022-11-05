@@ -320,17 +320,16 @@ UBUT_FORCEINLINE ubut_int64_t ubut_ns(void)
 UBUT_END_EXTERN_C
 	/*
 -------------------------------------------------------------------------------
-CAUTION: This is compile time. You must define  _WIN32_WINNT in project settings.
-(and WINVER too)
+This is compile time. Be sure of defined  _WIN32_WINNT, same goes for WINVER
 
-Meaning: you compile and run on W10 and all is fine.
+Meaning: you compile and run cmd.exe on W10 and all is fine.
 But, you run the same exe on W7, and squigly bits will be shown instead of colours
 
-If you check at runtime and stop if running bellow W10, in that respect you will be ok.
+Ditto: check at runtime and stop if running bellow W10
 -------------------------------------------------------------------------------
 */
 
-#if (_WIN32_WINNT == 0x0A00)
+#if (_WIN32_WINNT >= 0x0A00)
 #define UBUT_VT_ESC "\x1b["
 #define UBUT_VT_RESET UBUT_VT_ESC "0m"
 #define UBUT_VT_GRAY UBUT_VT_ESC "90m"
@@ -391,6 +390,7 @@ If you check at runtime and stop if running bellow W10, in that respect you will
 		fprintf(stderr, UBUT_VT_RESET); \
 		fflush(stdout);                 \
 		fflush(stderr);                 \
+		system(" ");                    \
 	} while (0)
 
 /*
