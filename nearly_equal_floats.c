@@ -46,16 +46,25 @@
 #include "ubut/utest.h"
 /*
 ***********************************************************************************
-
+Test 7, 11 and 12 seem to be "pathological" casess. 
+Is there a float comparison algortihm that can pass them all tests?
 ***********************************************************************************
 */
+// The trick is to find the right epsilon, FLT_EPSILON seems not to work as expected.
+// this makes almost all tests fail
+// #define DBJ_EPSILON 0.001f 
+// this one makes 7, 11 and 12 fail
+#define DBJ_EPSILON 0.00001f
+// this makes almost all tests fail
+// #define DBJ_EPSILON 0.0000001f
 
     __inline bool nearly_equal_proxy(float a, float b) 
     {
              // this makes many tests fail
              // return a == b ;
              // and this is almost perfect
-             return nearly_equal(a,b, 0.001f);
+            //  return nearly_equal(a,b, 0.00001f);
+             return nearly_equal(a,b, DBJ_EPSILON );
              // return nearly_equal(a,b, FLT_EPSILON);
     }
 
@@ -123,15 +132,15 @@
         ASSERT_FALSE(nearly_equal_proxy(-0.00000001f, 0.0f));
         ASSERT_FALSE(nearly_equal_proxy(0.0f, -0.00000001f));
 
-        ASSERT_TRUE(nearly_equal(0.0f, 1e-40f, FLT_EPSILON));
-        ASSERT_TRUE(nearly_equal(1e-40f, 0.0f, FLT_EPSILON));
-        ASSERT_FALSE(nearly_equal(1e-40f, 0.0f, FLT_EPSILON));
-        ASSERT_FALSE(nearly_equal(0.0f, 1e-40f, FLT_EPSILON));
+        ASSERT_TRUE(nearly_equal_proxy(0.0f, 1e-40f));
+        ASSERT_TRUE(nearly_equal_proxy(1e-40f, 0.0f));
+        ASSERT_FALSE(nearly_equal_proxy(1e-40f, 0.0f));
+        ASSERT_FALSE(nearly_equal_proxy(0.0f, 1e-40f));
 
-        ASSERT_TRUE(nearly_equal(0.0f, -1e-40f, FLT_EPSILON));
-        ASSERT_TRUE(nearly_equal(-1e-40f, 0.0f, FLT_EPSILON));
-        ASSERT_FALSE(nearly_equal(-1e-40f, 0.0f, FLT_EPSILON));
-        ASSERT_FALSE(nearly_equal(0.0f, -1e-40f, FLT_EPSILON));
+        ASSERT_TRUE(nearly_equal_proxy(0.0f, -1e-40f));
+        ASSERT_TRUE(nearly_equal_proxy(-1e-40f, 0.0f));
+        ASSERT_FALSE(nearly_equal_proxy(-1e-40f, 0.0f));
+        ASSERT_FALSE(nearly_equal_proxy(0.0f, -1e-40f));
     }
 
     /**
