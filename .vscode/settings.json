@@ -12,6 +12,7 @@
         "xutility": "cpp",
         "utility": "cpp",
         "limits.h": "c",
-        "float.h": "c"
+        "float.h": "c",
+        "tuple": "c"
     }
 }
