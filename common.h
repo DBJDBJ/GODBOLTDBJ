@@ -97,7 +97,7 @@ DBJ_DO_PRAGMA(clang system header)
 #define MALLOC(SIZE_) calloc(1, SIZE_)
 
 //------------------------------------------------------------------------------
-// NOTE we have funcions too from this point onwards
+// NOTE we have funcions too from this point onward
 DBJ_EXTERN_C_BEGIN
 
 // https://pubs.opengroup.org/onlinepubs/9699919799/functions/memccpy.html
@@ -107,7 +107,7 @@ DBJ_EXTERN_C_BEGIN
 extern void *_memccpy(void *, const void *, const int, const size_t);
 
 // hides the rand seed init and makes sure it is always done on time
-__attribute__((constructor)) __inline void
+__attribute__((constructor)) DBJ_COMMON_API void
 init_random(void) {
     srand(time(NULL));
 }
@@ -120,7 +120,7 @@ init_random(void) {
 // Assumes 0 <= max <= RAND_MAX
 // Returns in the closed interval [0, max]
 // be warry of : __inline , it can bloat the code considerably
-static long
+DBJ_COMMON_API long
 random_at_most(long max) {
     unsigned long
         // max <= RAND_MAX < ULONG_MAX, so this is okay.
@@ -156,7 +156,7 @@ random_at_most(long max) {
 #endif
 
 // with max len sanity check in a debug mode
-static size_t
+DBJ_COMMON_API size_t
 xstrlen(WCHAR *s) {
     size_t n = 1;
     while (*s++) {
@@ -166,7 +166,7 @@ xstrlen(WCHAR *s) {
     return n;
 }
 
-static void
+DBJ_COMMON_API void
 xmemcpy(void *dst, void *src, size_t len) {
     unsigned char *d = dst, *s = src;
     for (size_t i = 0; i < len; i++)
@@ -174,7 +174,7 @@ xmemcpy(void *dst, void *src, size_t len) {
 }
 
 /* Find the end of argv[0]. */
-static WCHAR *
+DBJ_COMMON_API WCHAR *
 endof_argv_0(WCHAR *s) {
     if (s[0] == 34) {
         /* quoted argv[0] */
@@ -200,7 +200,7 @@ endof_argv_0(WCHAR *s) {
 }
 
 /* Find the final file component. */
-static WCHAR *
+DBJ_COMMON_API WCHAR *
 filename_last(WCHAR *s) {
     for (WCHAR *r = s;; s++) {
         switch (*s) {
