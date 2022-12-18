@@ -81,15 +81,8 @@ DBJ_DO_PRAGMA(clang system header)
 #include <time.h>
 
 // poor man's logging
-// define this to the handle of your log file
-#define DBJ_OUT_STRM dbj_log_file_strm
-// much cleaner vs redirecting stderr
-// if you think __VA_OPT__ is clever you can use that too, somewhere ...
-#ifndef DBJ_OUT_STRM
-#define DBJ_LOG(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define DBJ_LOG(...) fprintf(DBJ_OUT_STRM, __VA_ARGS__)
-#endif   // DBJ_OUT_STRM
+// LLL == Low Level Log
+#define DBJ_LLL(...) fprintf(stderr, __VA_ARGS__)
 
 #if __cplusplus >= 202002L
 // C++20 (and later) code
@@ -100,8 +93,8 @@ DBJ_DO_PRAGMA(clang system header)
 
 #undef DBJ_HERE
 #undef DBJ_FX
-#define DBJ_HERE     DBJ_LOG("\nLine : %6d", __LINE__)
-#define DBJ_FX(F, X) DBJ_LOG("\n%-6d %s : " F, __LINE__, (#X), (X))
+#define DBJ_HERE     DBJ_LLL("\nLine : %6d", __LINE__)
+#define DBJ_FX(F, X) DBJ_LLL("\n%-6d %s : " F, __LINE__, (#X), (X))
 
 #undef MALLOC
 #define MALLOC(SIZE_) calloc(1, SIZE_)
@@ -221,31 +214,24 @@ filename_last(WCHAR *s) {
     }
 }
 
-static FILE *dbj_log_file_strm = 0;
-
-// set DBJ_OUT_STRM to argv[0] + "log"
-__attribute__((constructor)) DBJ_COMMON_API void
-dbj_set_log_stream(void) {
-
-    char logpath[MAX_PATH + 1] = {0};
-    dbj_assert(0 == GetModuleFileName(0, logpath, MAX_PATH + 1));
-    dbj_assert(0 == strncat_s(logpath, MAX_PATH, ".log", MAX_PATH));
-    dbj_assert(0 == fopen_s(&dbj_log_file_strm, logpath, "w"));
-}
-
-__attribute__((destructor)) DBJ_COMMON_API void
-dbj_close_log_stream(void) {
-    if (0 != dbj_log_file_strm) {
-        __try {
-            dbj_assert(0 == ferror(dbj_log_file_strm));
-            dbj_assert(0 == fflush(dbj_log_file_strm));
-            dbj_assert(0 == fclose(dbj_log_file_strm));
-        } __except (EXCEPTION_EXECUTE_HANDLER) {
-            perror("log file closing failed");
-        }
-        dbj_log_file_strm = 0;
+// universal SEH filter logger
+/*
+codes are in winnt.h
+int main()
+{
+    __try {
+        // SEH raised
     }
+    __except(dbj_filter_seh(GetExceptionCode(), GetExceptionInformation())) {
+        DBJ_LLL("SEH caught");
+    }
+*/
+int
+dbj_filter_seh(int code, PEXCEPTION_POINTERS ex) {
+    DBJ_LLL("SEH Filtering, code: %d ", code);
+    return EXCEPTION_EXECUTE_HANDLER;
 }
+
 //------------------------------------------------------------------------------
 #endif   // DBJ_WIN
 

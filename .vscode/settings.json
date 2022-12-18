@@ -13,6 +13,8 @@
         "utility": "cpp",
         "limits.h": "c",
         "float.h": "c",
-        "tuple": "c"
+        "tuple": "c",
+        "redirected_stderr_log.h": "c",
+        "dbj_common.h": "c"
     }
 }

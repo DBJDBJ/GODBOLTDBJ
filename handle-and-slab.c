@@ -44,13 +44,13 @@ int slab_free_slots[MX_SLAB_SIZE] = {/* false, false, false*/};
 // thus avoiding a perpetual question
 static void
 mx_print(MX_HANDLE mxh_) {
-    DBJ_LOG("\nmx:%d {", mxh_);
+    DBJ_LLL("\nmx:%d {", mxh_);
     for (int R = 0; R < 3; R++) {
-        DBJ_LOG("\n");
+        DBJ_LLL("\n");
         for (int C = 0; C < slab[mxh_].cols; C++)
-            DBJ_LOG(MX_VAL_FMT, slab[mxh_].data[R][C]);
+            DBJ_LLL(MX_VAL_FMT, slab[mxh_].data[R][C]);
     }
-    DBJ_LOG("\n}");
+    DBJ_LLL("\n}");
 }
 
 static void
