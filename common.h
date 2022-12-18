@@ -55,9 +55,19 @@ DBJ_DO_PRAGMA(clang system header)
 #define WIN32_LEAN_AND_MEAN
 #include <crtdbg.h>
 #include <windows.h>
-#define assert _ASSERTE
+// non destructive assert
+#ifdef _DEBUG
+#define dbj_assert(x_) _ASSERTE(x_)
+#else
+#define dbj_assert(x_) (__typeof(x_)) (x_)
+#endif
 #else   // no WIN API
 #include <assert.h>
+#ifdef _DEBUG
+#define dbj_assert(x_) assert(x_)
+#else
+#define dbj_assert(x_) (__typeof(x_)) (x_)
+#endif
 #endif   // no WIN API
 
 // #define __STDC_WANT_LIB_EXT1__ 1
@@ -72,7 +82,7 @@ DBJ_DO_PRAGMA(clang system header)
 
 // poor man's logging
 // define this to the handle of your log file
-// if need be
+#define DBJ_OUT_STRM dbj_log_file_strm
 // much cleaner vs redirecting stderr
 // if you think __VA_OPT__ is clever you can use that too, somewhere ...
 #ifndef DBJ_OUT_STRM
@@ -151,9 +161,7 @@ random_at_most(long max) {
 #define LCMD    LSTR(CMD)
 
 // of course you can increase
-#ifdef _DEBUG
 #define DBJ_MAX_STRLEN 0xFFFF
-#endif
 
 // with max len sanity check in a debug mode
 DBJ_COMMON_API size_t
@@ -161,7 +169,7 @@ xstrlen(WCHAR *s) {
     size_t n = 1;
     while (*s++) {
         n++;
-        assert(!(DBJ_MAX_STRLEN > n));
+        dbj_assert(!(DBJ_MAX_STRLEN > n));
     }
     return n;
 }
@@ -213,7 +221,32 @@ filename_last(WCHAR *s) {
     }
 }
 
-DBJ_EXTERN_C_END
+static FILE *dbj_log_file_strm = 0;
 
+// set DBJ_OUT_STRM to argv[0] + "log"
+__attribute__((constructor)) DBJ_COMMON_API void
+dbj_set_log_stream(void) {
+
+    char logpath[MAX_PATH + 1] = {0};
+    dbj_assert(0 == GetModuleFileName(0, logpath, MAX_PATH + 1));
+    dbj_assert(0 == strncat_s(logpath, MAX_PATH, ".log", MAX_PATH));
+    dbj_assert(0 == fopen_s(&dbj_log_file_strm, logpath, "w"));
+}
+
+__attribute__((destructor)) DBJ_COMMON_API void
+dbj_close_log_stream(void) {
+    if (0 != dbj_log_file_strm) {
+        __try {
+            dbj_assert(0 == ferror(dbj_log_file_strm));
+            dbj_assert(0 == fflush(dbj_log_file_strm));
+            dbj_assert(0 == fclose(dbj_log_file_strm));
+        } __except (EXCEPTION_EXECUTE_HANDLER) {
+            perror("log file closing failed");
+        }
+        dbj_log_file_strm = 0;
+    }
+}
 //------------------------------------------------------------------------------
 #endif   // DBJ_WIN
+
+DBJ_EXTERN_C_END
