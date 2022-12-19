@@ -1,15 +1,15 @@
-#ifndef DBJ_CAPI_DEFAULT_LOG
-#define DBJ_CAPI_DEFAULT_LOG
+#pragma once
+#include <dbj_common.h>
+#include <dbj_seh.h>
+#include <dbj_windows_include.h>   // also dbj_assert() non destructive
+
+#include <io.h>
+#include <stdarg.h>
 
 // (c) 2021 by dbj@dbj.org https://dbj.org/license_dbj
 //
 // #define DBJ_CAPI_DEFAULT_LOG_IMPLEMENTATION , in one place exactly
 //
-// using the "machine-wide"
-#include <dbj_common.h>
-#include <dbj_windows_include.h>   // also dbj_assert() non destructive
-#include <io.h>
-#include <stdarg.h>
 // --------------------------------------------------------------
 DBJ_EXTERN_C_BEGIN
 
@@ -187,5 +187,3 @@ dbjcapi_redirector_off(void) {
 #endif   // DBJ_CAPI_DEFAULT_LOG_IMPLEMENTATION
 // -----------------------------------------------------------------------------
 DBJ_EXTERN_C_END
-
-#endif   // DBJ_CAPI_DEFAULT_LOG

@@ -1,20 +1,7 @@
 {
     "files.associations": {
-        "xlocale": "c",
-        "array": "cpp",
-        "initializer_list": "cpp",
-        "list": "cpp",
-        "type_traits": "cpp",
-        "vector": "cpp",
-        "xhash": "cpp",
-        "xstring": "cpp",
-        "xtree": "cpp",
-        "xutility": "cpp",
-        "utility": "cpp",
-        "limits.h": "c",
-        "float.h": "c",
-        "tuple": "c",
-        "redirected_stderr_log.h": "c",
+        "dbj_seh.h": "c",
+        "dbj_windows_include.h": "c",
         "dbj_common.h": "c"
     }
 }

@@ -6,11 +6,11 @@
 			"label": "CLANG",
 			"command": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\Llvm\\x64\\bin\\clang.exe",
 			"args": [
+				// make sure you use and understand c_cpp_properties.json 
 				// dbj@dbj.org is always using the "machine wide" 
 				// https://github.com/dbj-data/dbj-dll
 				// in other words common code to be used elsewhere
 				// on the machine where they develop C or C++ code
-				"-I D:\\DEVL\\machine_wide",
 				"-W#pragma-messages",
 				// "-std=c++17",
 				"-fcolor-diagnostics",

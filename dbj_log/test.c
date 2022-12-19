@@ -1,3 +1,5 @@
+// dbj
+#define DBJ_CAPI_DEFAULT_LOG_IMPLEMENTATION
 #include "redirected_stderr_log.h"
 #include <dbj_seh.h>
 
