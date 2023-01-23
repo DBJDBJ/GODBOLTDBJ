@@ -13,12 +13,13 @@
 // --------------------------------------------------------------
 DBJ_EXTERN_C_BEGIN
 
+#undef DBJ_DEFAULT_LOG_BUFSIZ
 #define DBJ_DEFAULT_LOG_BUFSIZ 1024
 
 // poor man's logging
-// LLL == Low Level Log
-#ifndef DBJ_LLL
-#define DBJ_LLL(...) fprintf(stderr, __VA_ARGS__)
+//
+#ifndef DBJLLL
+#define DBJLLL(...) fprintf(stderr, __VA_ARGS__)
 #endif
 
 /// --------------------------------------------------------------
@@ -26,14 +27,16 @@ DBJ_EXTERN_C_BEGIN
 /// might be to redirect stderr to a file
 /// https://stackoverflow.com/questions/14543443/in-c-how-do-you-redirect-stdin-stdout-stderr-to-files-when-making-an-execvp-or
 
-void dbjcapi_default_log_function(const char *filename, long lineno,
-                                  const char *format, ...);
+static inline void dbjcapi_default_log_function(const char *filename,
+                                                long lineno, const char *format,
+                                                ...);
 
 typedef struct dbj_redirector_state dbj_redirector_state;
 
-dbj_redirector_state *dbj_redirector_state_(void);
-void dbjcapi_redirector_on(const char[static 1] /*log file name*/);
-void dbjcapi_redirector_off(void);
+static inline dbj_redirector_state *dbj_redirector_state_(void);
+static inline void
+dbjcapi_redirector_on(const char[static 1] /*log file name*/);
+static inline void dbjcapi_redirector_off(void);
 
 /// --------------------------------------------------------------
 #ifdef DBJ_CAPI_DEFAULT_LOG_IMPLEMENTATION
@@ -49,7 +52,7 @@ typedef enum dbjcapi_default_log_state_ {
 dbjcapi_default_log_state dbjcapi_default_log_state_ =
     dbjcapi_default_log_noninitialized;
 
-void
+static inline void
 dbjcapi_default_log_function(const char *filename, long lineno,
                              const char *format, ...) {
     DBJ_ASSERT(filename && lineno && format);
@@ -128,13 +131,13 @@ dbjcapi_default_log_construct(void) {
 /// redirect stderr to file
 /// warning: not enough error checking
 
-dbj_redirector_state *
+static inline dbj_redirector_state *
 dbj_redirector_state_(void) {
     static dbj_redirector_state dbj_redirector_state_instance = {false};
     return &dbj_redirector_state_instance;
 }
 
-void
+static inline void
 dbjcapi_redirector_on(const char filename[static 1]) {
     // otherwise we are on console and stderr can not be redirected
     DBJ_ASSERT(0 == _isatty(_fileno(stderr)));
@@ -170,7 +173,7 @@ dbjcapi_redirector_on(const char filename[static 1]) {
 /// if you do this too soon printing to redirected
 /// stderr might not outpout to file but to
 /// non existent console
-void
+static inline void
 dbjcapi_redirector_off(void) {
     dbj_redirector_state *state = dbj_redirector_state_();
 
@@ -178,7 +181,7 @@ dbjcapi_redirector_off(void) {
     DBJ_ASSERT(0 == _isatty(_fileno(stderr)));
 
     fflush(stderr);
-    int dup2_rezult_ = _dup2(state->fd, _fileno(stderr));
+    /* int dup2_rezult_ = */ _dup2(state->fd, _fileno(stderr));
     _close(state->fd);
     clearerr(stderr);
     fsetpos(stderr, &state->pos);

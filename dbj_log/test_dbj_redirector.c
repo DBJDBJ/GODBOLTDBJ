@@ -1,14 +1,12 @@
+// idea is to redirect the stderr so in case of win desktop build we
+// printf to it
 // dbj
 #define DBJ_CAPI_DEFAULT_LOG_IMPLEMENTATION
 #include "redirected_stderr_log.h"
-#include <dbj_seh.h>
 
 int
-main(const int argc, const char argv[argc]) {
-    __try {
-        // SEH raised
-    } __except (dbj_filter_seh(GetExceptionCode(), GetExceptionInformation())) {
-        DBJ_LLL("SEH caught");
-    }
+main(const int argc, const char **argv) {
+
+    dbjlowlog("Whatever");
     return 42;
 }
