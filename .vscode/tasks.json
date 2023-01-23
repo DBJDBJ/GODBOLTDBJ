@@ -11,6 +11,7 @@
 				// https://github.com/dbj-data/dbj-dll
 				// in other words common code to be used elsewhere
 				// on the machine where they develop C or C++ code
+				"-I${env:DBJ_MACHINE_WIDE}",
 				"-W#pragma-messages",
 				// "-std=c++17",
 				"-fcolor-diagnostics",

@@ -2,6 +2,8 @@
     "files.associations": {
         "dbj_seh.h": "c",
         "dbj_windows_include.h": "c",
-        "dbj_common.h": "c"
+        "dbj_common.h": "c",
+        "redirected_stderr_log.h": "c",
+        "common.h": "c"
     }
 }

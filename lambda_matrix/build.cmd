@@ -20,13 +20,13 @@
 :debug
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 set CLANG="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang-cl.exe"
-%CLANG% /std:c++20 /MTd /Zi /D_HAS_EXCEPTIONS=0 lambdamatrix.cpp /GR- /o out/lambdamatrix.exe
+%CLANG% /std:c++20 /MTd /Zi /I %DBJ_MACHINE_WIDE% /D_HAS_EXCEPTIONS=0 lambdamatrix.cpp /GR- /o out/lambdamatrix.exe
 @goto exit
 
 :release
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 set CLANG="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin\clang-cl.exe"
-%CLANG% /std:c++20 /MT lambdamatrix.cpp /D_HAS_EXCEPTIONS=0 /GR- /o out/lambdamatrix.exe
+%CLANG% /std:c++20 /MT lambdamatrix.cpp /I %DBJ_MACHINE_WIDE% /D_HAS_EXCEPTIONS=0 /GR- /o out/lambdamatrix.exe
 @goto exit
 
 

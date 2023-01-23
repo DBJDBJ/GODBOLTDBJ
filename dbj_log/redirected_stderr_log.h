@@ -1,7 +1,7 @@
 #pragma once
-#include <dbj_common.h>
-#include <dbj_seh.h>
-#include <dbj_windows_include.h>   // also dbj_assert() non destructive
+#include <common/dbj_common.h>
+#include <common/dbj_seh.h>
+#include <common/dbj_windows_include.h>   // also dbj_assert() non destructive
 
 #include <io.h>
 #include <stdarg.h>
