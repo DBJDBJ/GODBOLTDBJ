@@ -1,8 +1,11 @@
 #pragma once
 
 /*
-   important: this whoile repo is compiled on windows with clang
-   and with NO std argument.
+   (c) by dbj@dbj.org CC BY SA 4.0
+
+   this was common.h but that is too dangerous and common name :wink:
+   important: this whole repo is compiled on windows with clang
+   and most importaqntly: with NO std argument.
 
    Thus, the language is whatever clang decided it is ...
 
@@ -26,19 +29,10 @@
 #undef DBJ_COMMON_API
 // be warry of : __inline , it can bloat the code considerably
 // #define DBJ_COMMON_API __inline
-// #define DBJ_COMMON_API static inline
-#define DBJ_COMMON_API static
+#define DBJ_COMMON_API static inline
+// #define DBJ_COMMON_API static
 
-#undef DBJ_DO_PRAGMA_
-#undef DBJ_DO_PRAGMA
-// Using this you can create shorthands for various pragmas like this
-// #define POISON(name) DBJ_DO_PRAGMA(GCC poison name)
-// POISON(puts) // becomes _Pragma("GCC poison puts")
-#define DBJ_DO_PRAGMA_(x) _Pragma(#x)
-#define DBJ_DO_PRAGMA(x)  DBJ_DO_PRAGMA_(x)
-
-// #pragma clang system_header
-DBJ_DO_PRAGMA(clang system header)
+#pragma clang system_header
 
 //------------------------------------------------------------------------------
 #undef DBJ_WIN
@@ -55,9 +49,13 @@ DBJ_DO_PRAGMA(clang system header)
 #define WIN32_LEAN_AND_MEAN
 #include <crtdbg.h>
 #include <windows.h>
-// non destructive assert
+
+// non destructive assert, why haven't you thought of this before?
+// in release build it does not remove its argument
 #ifdef _DEBUG
-#define dbj_assert(x_) _ASSERTE(x_)
+// carefull: _ASSERTE requires standard cl.exe runtime in a DLL
+// iut does not work in static libs
+#define dbj_assert(x_) assert(x_)
 #else
 #define dbj_assert(x_) (__typeof(x_)) (x_)
 #endif
@@ -74,6 +72,7 @@ DBJ_DO_PRAGMA(clang system header)
 // Annex K? Do not do this, here is why
 // https://www.reddit.com/r/C_Programming/comments/gp2uh5/comment/frjgn1x/?utm_source=share&utm_medium=web2x&context=3
 
+#include <assert.h>
 #include <memory.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -81,8 +80,9 @@ DBJ_DO_PRAGMA(clang system header)
 #include <time.h>
 
 // poor man's logging
-// LLL == Low Level Log
-#define DBJ_LLL(...) fprintf(stderr, __VA_ARGS__)
+// iuf you know how to redirect the stderr to a file it will work
+// behind a gui too
+#define dbj_err_log(...) fprintf(stderr, __VA_ARGS__)
 
 #if __cplusplus >= 202002L
 // C++20 (and later) code
@@ -93,14 +93,14 @@ DBJ_DO_PRAGMA(clang system header)
 
 #undef DBJ_HERE
 #undef DBJ_FX
-#define DBJ_HERE     DBJ_LLL("\nLine : %6d", __LINE__)
-#define DBJ_FX(F, X) DBJ_LLL("\n%-6d %s : " F, __LINE__, (#X), (X))
+#define DBJ_HERE     dbj_err_log("\nLine : %6d", __LINE__)
+#define DBJ_FX(F, X) dbj_err_log("\n%-6d %s : " F, __LINE__, (#X), (X))
 
 #undef MALLOC
 #define MALLOC(SIZE_) calloc(1, SIZE_)
 
 //------------------------------------------------------------------------------
-// NOTE we have funcions too from this point onward
+// NOTE we have functions from this point onward
 DBJ_EXTERN_C_BEGIN
 
 // https://pubs.opengroup.org/onlinepubs/9699919799/functions/memccpy.html
@@ -115,7 +115,7 @@ init_random(void) {
     srand(time(NULL));
 }
 
-// this produces a biased result, but in 99.9999% use cases, who cares
+// this produces a biased result, but in 99% use cases, who cares
 #undef DBJ_RANDINRANGE
 #define DBJ_RANDINRANGE(max, min) ((rand() % (max + 1 - min)) + min)
 
@@ -223,12 +223,12 @@ int main()
         // SEH raised
     }
     __except(dbj_filter_seh(GetExceptionCode(), GetExceptionInformation())) {
-        DBJ_LLL("SEH caught");
+        dbj_err_log("SEH caught");
     }
 */
 int
 dbj_filter_seh(int code, PEXCEPTION_POINTERS ex) {
-    DBJ_LLL("SEH Filtering, code: %d ", code);
+    dbj_err_log("SEH Filtering, code: %d ", code);
     return EXCEPTION_EXECUTE_HANDLER;
 }
 

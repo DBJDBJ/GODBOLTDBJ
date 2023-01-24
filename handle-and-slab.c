@@ -1,5 +1,5 @@
 
-#include "common.h"
+#include "godboltdbj.h"
 
 DBJ_EXTERN_C_BEGIN
 
@@ -37,6 +37,7 @@ const mx slab[MX_SLAB_SIZE] = {MX_TEST_VAL, MX_TEST_VAL, MX_TEST_VAL};
 // to manage the data alloc/free we need to know
 // the free handles to the free slots
 // on the start up there are no free slots, they are all false aka 0
+// coming in C23
 int slab_free_slots[MX_SLAB_SIZE] = {/* false, false, false*/};
 
 // we do not pass the struct by value nor the pointer to it
@@ -44,17 +45,17 @@ int slab_free_slots[MX_SLAB_SIZE] = {/* false, false, false*/};
 // thus avoiding a perpetual question
 static void
 mx_print(MX_HANDLE mxh_) {
-    DBJ_LLL("\nmx:%d {", mxh_);
+    dbj_err_log("\nmx:%d {", mxh_);
     for (int R = 0; R < 3; R++) {
-        DBJ_LLL("\n");
+        dbj_err_log("\n");
         for (int C = 0; C < slab[mxh_].cols; C++)
-            DBJ_LLL(MX_VAL_FMT, slab[mxh_].data[R][C]);
+            dbj_err_log(MX_VAL_FMT, slab[mxh_].data[R][C]);
     }
-    DBJ_LLL("\n}");
+    dbj_err_log("\n}");
 }
 
-static void
-slab_print_used() {
+static inline void
+slab_print_used(void) {
     for (int k = 0; k < 3; k++)
         // do not print mx in the free slot
         if (!slab_free_slots[k])

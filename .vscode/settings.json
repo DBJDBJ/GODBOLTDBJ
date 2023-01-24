@@ -4,6 +4,7 @@
         "dbj_windows_include.h": "c",
         "dbj_common.h": "c",
         "redirected_stderr_log.h": "c",
-        "common.h": "c"
+        "common.h": "c",
+        "godboltdbj.h": "c"
     }
 }
