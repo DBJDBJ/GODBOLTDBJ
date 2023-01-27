@@ -1,4 +1,4 @@
-#include "godboltdbj.h"
+#include "../godboltdbj.h"
 
 // officialy not until C23
 // for C17 and bellow
