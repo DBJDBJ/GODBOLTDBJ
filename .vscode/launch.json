@@ -5,11 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            // "preLaunchTask": "build",
+            "program": "${fileDirname}/bin/Debug/net7.0/${fileBasenameNoExtension}.dll",
+            "args": [],
+            "cwd": "${fileDirname}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}.exe",
-            "args": ["2","64"],
+            "args": [
+                "2",
+                "64"
+            ],
             "stopAtEntry": true,
             "cwd": "${fileDirname}",
             "environment": [],
@@ -20,7 +34,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             //"program": "${workspaceFolder}/lambdamatrix/out/${fileBasenameNoExtension}.exe",
-            "program" : "D:\\DEVL\\GITHUB\\DBJDBJ\\GODBOLTDBJ\\lambda_matrix\\out\\lambdamatrix.exe",
+            "program": "D:\\DEVL\\GITHUB\\DBJDBJ\\GODBOLTDBJ\\lambda_matrix\\out\\lambdamatrix.exe",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${fileDirname}",
