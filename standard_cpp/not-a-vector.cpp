@@ -1,115 +1,248 @@
-// (c) 2021 by dbj@dbj.org
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+// https://godbolt.org/z/1r19TMqdf
+#include <iostream>
 #include <stdexcept>
-#include <string>
-#include <type_traits>
+#include <cstring>
 
-// dynamic buffer of trivially copyable types
-// by no means finished either in design or in implementation
-template <typename T>
-class not_a_vector {
-  // https://en.cppreference.com/w/cpp/string/byte/memcpy
-  static_assert(std::is_trivially_copyable_v<T>,
-                "\n\nnot_a_vector<>T -- realloc can handle only trivially "
-                "copiable types!\n\n");
-
-  constexpr static size_t initial_capacity_ = 0xFF;
-  constexpr static size_t capacity_increment_ = 2;
-  size_t size_ = 0;
-  size_t capacity_ = 0;
-  T *arr_ = nullptr;
-
- public:
-  // contructors and destructors
-  not_a_vector() noexcept : size_(0), capacity_(0), arr_(nullptr) {
-    resize(initial_capacity_);
-  }
-  ~not_a_vector() noexcept {
-    if (arr_ != nullptr) {
-      resize(0);
-      size_ = 0;
-      capacity_ = 0;
-    }
-  }
-
-  // please implement these
-  not_a_vector(not_a_vector const &) noexcept = delete;
-  not_a_vector &operator=(not_a_vector const &) noexcept = delete;
-
-  not_a_vector(not_a_vector && other_ ) noexcept 
-  : size_(other_.size_), capacity_(other_.capacity_), arr_(other_.arr_)
-  {
-      other_.arr_ = nullptr ;
-  }
-  not_a_vector &operator=(not_a_vector && other_ ) noexcept 
-  {
-      size_ = other_.size_;
-      capacity_ = other_.capacity_;
-      resize(other_.capacity_);
-      memcpy( arr_, other_.arr_, size_ );
-
-      return *this;
-  }
-
-  ///////////////////////////////////////////////////////
-
-  T &operator[](size_t idx) {
-    if (idx > this->size_) {
-      errno = EINVAL;
-      perror("Bad index!");
-      exit(EXIT_FAILURE);
+template<typename T>
+class LightVector {
+public:
+    LightVector()
+        : capacity_(1), size_(0), data_(static_cast<T*>(std::malloc(sizeof(T) * capacity_))) {
+        if (!data_) {
+            throw std::bad_alloc();
+        }
     }
 
-    return this->arr_[idx];
-  }
-
-  const T &operator[](size_t idx) const noexcept {
-    if (idx > this->size_) {
-      errno = EINVAL;
-      perror("Bad index!");
-      exit(EXIT_FAILURE);
+    // Copy constructor
+    LightVector(const LightVector& other)
+        : capacity_(other.capacity_), size_(other.size_), data_(static_cast<T*>(std::malloc(sizeof(T) * capacity_))) {
+        if (!data_) {
+            throw std::bad_alloc();
+        }
+        std::memcpy(data_, other.data_, size_ * sizeof(T));
     }
 
-    return this->arr_[idx];
-  }
+    // Copy assignment operator
+    LightVector& operator=(const LightVector& other) {
+        if (this == &other) return *this; // Handle self-assignment
 
-  const T *const data(void) const noexcept { return this->arr_; }
-  T *const data(void) noexcept { return this->arr_; }
+        // Free existing resources
+        std::free(data_);
 
-  // change value functions
-  void push_back(/*const*/ T value) {
-    if (size_ >= capacity_) resize(capacity_ * capacity_increment_);
-    arr_[size_] = value;
-    size_++;
-  }
-  // better resize
-  void resize(std::size_t newSize) {
-    if (newSize == 0) {       // this check is not strictly needed,
-      std::free(this->arr_);  // but zero-size realloc is deprecated in C
-      this->arr_ = nullptr;
-    } else {
-      if (void *mem = std::realloc(this->arr_, newSize))
-        this->arr_ = static_cast<T *>(mem);
-      else {
-        errno = ENOMEM;
-        perror("Not enough memory");
-        exit(EXIT_FAILURE);
-      }
+        // Allocate new resources and copy data
+        capacity_ = other.capacity_;
+        size_ = other.size_;
+        data_ = static_cast<T*>(std::malloc(sizeof(T) * capacity_));
+        if (!data_) {
+            throw std::bad_alloc();
+        }
+        std::memcpy(data_, other.data_, size_ * sizeof(T));
+
+        return *this;
     }
-    this->capacity_ = newSize;
-  }
-};  //////////////////////////////////////////////////////////
+
+    ~LightVector() {
+        std::free(data_);
+    }
+
+    void push_back(const T& value) {
+        if (size_ >= capacity_) {
+            resize_internal(capacity_ * 2);
+        }
+        data_[size_++] = value;
+    }
+
+    void pop_back() {
+        if (size_ == 0) {
+            throw std::out_of_range("Vector is empty");
+        }
+        --size_;
+    }
+
+    T& operator[](std::size_t index) {
+        if (index >= size_) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        return data_[index];
+    }
+
+    const T& operator[](std::size_t index) const {
+        if (index >= size_) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        return data_[index];
+    }
+
+    std::size_t size() const {
+        return size_;
+    }
+
+    bool empty() const {
+        return size_ == 0;
+    }
+
+    template<size_t N>
+    void resize(T (&arr)[N]) {
+        if (N > capacity_) {
+            resize_internal(N);
+        }
+        std::memcpy(data_, arr, N * sizeof(T));
+        size_ = N;
+    }
+
+    template<size_t N>
+    LightVector& operator=(T (&arr)[N]) {
+        resize(arr);
+        return *this;
+    }
+
+private:
+    void resize_internal(std::size_t new_capacity) {
+        T* new_data = static_cast<T*>(std::realloc(data_, sizeof(T) * new_capacity));
+        if (!new_data) {
+            throw std::bad_alloc();
+        }
+        data_ = new_data;
+        capacity_ = new_capacity;
+    }
+
+    std::size_t capacity_;
+    std::size_t size_;
+    T* data_;
+};
+
+// Specialization for char
+template<>
+class LightVector<char> {
+public:
+    LightVector()
+        : capacity_(1), size_(0), data_(static_cast<char*>(std::malloc(sizeof(char) * capacity_))) {
+        if (!data_) {
+            throw std::bad_alloc();
+        }
+    }
+
+    // Copy constructor
+    LightVector(const LightVector& other)
+        : capacity_(other.capacity_), size_(other.size_), data_(static_cast<char*>(std::malloc(sizeof(char) * capacity_))) {
+        if (!data_) {
+            throw std::bad_alloc();
+        }
+        std::memcpy(data_, other.data_, size_ * sizeof(char));
+    }
+
+    // Copy assignment operator
+    LightVector& operator=(const LightVector& other) {
+        if (this == &other) return *this; // Handle self-assignment
+
+        // Free existing resources
+        std::free(data_);
+
+        // Allocate new resources and copy data
+        capacity_ = other.capacity_;
+        size_ = other.size_;
+        data_ = static_cast<char*>(std::malloc(sizeof(char) * capacity_));
+        if (!data_) {
+            throw std::bad_alloc();
+        }
+        std::memcpy(data_, other.data_, size_ * sizeof(char));
+
+        return *this;
+    }
+
+    ~LightVector() {
+        std::free(data_);
+    }
+
+    void push_back(const char& value) {
+        if (size_ >= capacity_) {
+            resize_internal(capacity_ * 2);
+        }
+        data_[size_++] = value;
+    }
+
+    void pop_back() {
+        if (size_ == 0) {
+            throw std::out_of_range("Vector is empty");
+        }
+        --size_;
+    }
+
+    char& operator[](std::size_t index) {
+        if (index >= size_) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        return data_[index];
+    }
+
+    const char& operator[](std::size_t index) const {
+        if (index >= size_) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        return data_[index];
+    }
+
+    std::size_t size() const {
+        return size_;
+    }
+
+    bool empty() const {
+        return size_ == 0;
+    }
+
+    template<size_t N>
+    LightVector& operator=(const char (&arr)[N]) {
+        resize(arr);
+        return *this;
+    }
+
+    LightVector& operator=(const char* str) {
+        std::size_t len = std::strlen(str);
+        resize_internal(len + 1); // +1 for null terminator
+        std::memcpy(data_, str, len);
+        data_[len] = '\0'; // Ensure null-terminated
+        size_ = len;
+        return *this;
+    }
+
+    void print() const {
+        std::cout << data_ << std::endl;
+    }
+
+private:
+    void resize_internal(std::size_t new_capacity) {
+        char* new_data = static_cast<char*>(std::realloc(data_, sizeof(char) * new_capacity));
+        if (!new_data) {
+            throw std::bad_alloc();
+        }
+        data_ = new_data;
+        capacity_ = new_capacity;
+    }
+
+    std::size_t capacity_;
+    std::size_t size_;
+    char* data_;
+};
+
+/////////////////////////////////////////////////////
+
+template<class T>
+static LightVector<T> hammer_of_thor  ( LightVector<T> vec )
+{
+    LightVector<char> vec2;
+
+    vec = "Hello, world!";
+    vec.print(); // Outputs: Hello, world!
+
+    vec2 = vec;
+  
+    return vec2 ;
+}
 
 int main() {
-  not_a_vector<char> vec_;
+    LightVector<char> vec = hammer_of_thor( LightVector<char>{} ) ;
+    vec.print(); // Outputs: Hello, world!
 
-  memcpy(vec_.data(), "PAYLOAD", 8);
 
-  printf("\n%s", vec_.data());
-
-  return 42;
-} 
+    return 0;
+}
